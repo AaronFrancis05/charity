@@ -2,6 +2,7 @@ import "server-only";
 import { insforgeServer } from "@/lib/insforge-server";
 import { sendDonorConfirmation } from "@/lib/resend";
 import { generateReceiptRef } from "@/lib/utils";
+import { captureServerEvent } from "@/lib/posthog-server";
 
 export interface SettleDonationParams {
   providerReference: string;
@@ -27,7 +28,7 @@ export async function settleDonation(
   const { data: row, error: lookupError } = await insforgeServer.database
     .from("donations_ledger")
     .select(
-      "id, child_id, amount_ugx, donor_email, donor_name, status, children_profiles(name)"
+      "id, child_id, amount_ugx, donor_email, donor_name, provider, status, children_profiles(name)"
     )
     .eq("provider_reference", providerReference)
     .single();
@@ -41,6 +42,13 @@ export async function settleDonation(
   }
 
   const receiptReference = generateReceiptRef();
+
+  captureServerEvent("donation_settled", row.child_id ?? "unknown", {
+    childId: row.child_id,
+    amountUgx: row.amount_ugx,
+    provider: row.provider,
+    receiptReference,
+  });
 
   const { error: updateError } = await insforgeServer.database
     .from("donations_ledger")
@@ -85,7 +93,7 @@ export async function markDonationFailed(
 ): Promise<SettleResult> {
   const { data: row, error: lookupError } = await insforgeServer.database
     .from("donations_ledger")
-    .select("id, status")
+    .select("id, child_id, provider, status")
     .eq("provider_reference", providerReference)
     .single();
 
@@ -96,6 +104,12 @@ export async function markDonationFailed(
   if (row.status === "failed" || row.status === "settled") {
     return { success: true, alreadySettled: row.status === "settled" };
   }
+
+  captureServerEvent("donation_failed", row.id, {
+    childId: row.child_id ?? "unknown",
+    provider: row.provider ?? "UNKNOWN",
+    errorCode: "webhook_status_failed",
+  });
 
   const { error: updateError } = await insforgeServer.database
     .from("donations_ledger")

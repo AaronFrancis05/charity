@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { insforgeServer } from "@/lib/insforge-server";
 import { CreateChildSchema, UpdateChildSchema } from "@/lib/validations/schemas";
 import { getAdminSession } from "./auth";
+import { captureServerEvent } from "@/lib/posthog-server";
 import type { CreateChildInput, UpdateChildInput } from "@/lib/validations/schemas";
 
 export type ActionResult<T = void> =
@@ -141,6 +142,12 @@ export async function createChild(
     },
   }]);
 
+  captureServerEvent("profile_created", session.adminId, {
+    adminId: session.adminId,
+    childId: data.id,
+    initialGoal: parsed.data.goal_monthly_ugx,
+  });
+
   revalidatePath("/admin/dashboard/children");
   revalidatePath("/sponsor");
 
@@ -176,6 +183,12 @@ export async function updateChild(
     target_id: id,
     metadata: { fieldsChanged },
   }]);
+
+  captureServerEvent("profile_updated", session.adminId, {
+    adminId: session.adminId,
+    childId: id,
+    fieldsChanged,
+  });
 
   revalidatePath(`/admin/dashboard/children/${id}`);
   revalidatePath("/admin/dashboard/children");

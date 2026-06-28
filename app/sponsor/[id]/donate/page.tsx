@@ -9,6 +9,7 @@ import { PaymentSelector } from "@/components/donation/PaymentSelector";
 import { TurnstileWidget } from "@/components/donation/TurnstileWidget";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { posthog } from "@/lib/posthog-client";
 
 type Provider = "FLUTTERWAVE" | "MTN_MOMO" | "AIRTEL_MONEY";
 
@@ -56,6 +57,12 @@ export default function DonatePage({ params }: { params: Promise<{ id: string }>
 
     setSubmitting(true);
     setError(null);
+
+    posthog.capture("donation_initiated", {
+      childId: id,
+      currency: "UGX",
+      provider,
+    });
 
     const result = await initiateDonation({
       childId: id,

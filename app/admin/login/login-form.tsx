@@ -9,6 +9,7 @@ import { TurnstileWidget } from "@/components/donation/TurnstileWidget";
 export function AdminLoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileKey, setTurnstileKey] = useState(0);
   const [isPending, startTransition] = useTransition();
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -27,6 +28,8 @@ export function AdminLoginForm() {
       const result = await adminLogin(formData);
       if (result && !result.success) {
         setError(result.error);
+        setTurnstileToken("");
+        setTurnstileKey((k) => k + 1);
       }
     });
   }
@@ -68,6 +71,7 @@ export function AdminLoginForm() {
 
       <div>
         <TurnstileWidget
+          key={turnstileKey}
           onVerify={(token) => setTurnstileToken(token)}
           onExpire={() => setTurnstileToken("")}
         />
