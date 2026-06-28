@@ -9,6 +9,7 @@ import { verifyTurnstileToken } from "@/lib/turnstile";
 import { AdminLoginSchema } from "@/lib/validations/schemas";
 import { getClientIp } from "@/lib/client-ip";
 import { hashIp } from "@/lib/utils";
+import { captureServerEvent } from "@/lib/posthog-server";
 
 export type AuthResult =
   | { success: true }
@@ -57,17 +58,24 @@ export async function adminLogin(
     .single();
 
   if (dbError || !adminRecord) {
-    // Log failed attempt
     await insforgeServer.database.from("admin_audit_logs").insert([{
       event_type: "login_failed",
       ip_hash: hashIp(ip),
       metadata: { email, attempt_count: 5 - (rl.remaining ?? 0) },
     }]);
+    captureServerEvent("admin_login_failed", "unknown", {
+      ipHash: await hashIp(ip),
+      attemptCount: 5 - (rl.remaining ?? 0),
+    });
     return { success: false, error: "Invalid email or password." };
   }
 
   // 5. Active check
   if (!adminRecord.is_active) {
+    captureServerEvent("admin_login_failed", adminRecord.id, {
+      ipHash: await hashIp(ip),
+      attemptCount: 5 - (rl.remaining ?? 0),
+    });
     return { success: false, error: "This account has been deactivated." };
   }
 
@@ -79,6 +87,10 @@ export async function adminLogin(
       ip_hash: hashIp(ip),
       metadata: { email },
     }]);
+    captureServerEvent("admin_login_failed", adminRecord.id, {
+      ipHash: await hashIp(ip),
+      attemptCount: 5 - (rl.remaining ?? 0),
+    });
     return { success: false, error: "Invalid email or password." };
   }
 
@@ -114,6 +126,11 @@ export async function adminLogin(
     event_type: "login_success",
     metadata: { role: adminRecord.role },
   }]);
+
+  captureServerEvent("admin_login_success", adminRecord.id, {
+    adminId: adminRecord.id,
+    role: adminRecord.role,
+  });
 
   redirect("/admin/dashboard");
 }

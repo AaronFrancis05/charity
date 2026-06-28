@@ -1,5 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
+import { captureClientError } from "@/lib/posthog-client";
+
 export default function Error({
   error,
   reset,
@@ -7,6 +10,10 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    captureClientError(error, { source: "error-boundary", digest: error.digest });
+  }, [error]);
+
   return (
     <div className="min-h-screen bg-[var(--color-background)] flex items-center justify-center">
       <div className="text-center">

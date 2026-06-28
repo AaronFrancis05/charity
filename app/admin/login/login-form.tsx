@@ -4,23 +4,32 @@ import { useState, useTransition } from "react";
 import { adminLogin } from "@/actions/auth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { TurnstileWidget } from "@/components/donation/TurnstileWidget";
 
 export function AdminLoginForm() {
   const [error, setError] = useState<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileKey, setTurnstileKey] = useState(0);
   const [isPending, startTransition] = useTransition();
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    if (!formData.get("turnstileToken")) {
-      formData.set("turnstileToken", "dev-bypass");
+
+    if (!turnstileToken) {
+      setError("Please complete the security check");
+      return;
     }
+
+    const formData = new FormData(e.currentTarget);
+    formData.set("turnstileToken", turnstileToken);
 
     setError(null);
     startTransition(async () => {
       const result = await adminLogin(formData);
       if (result && !result.success) {
         setError(result.error);
+        setTurnstileToken("");
+        setTurnstileKey((k) => k + 1);
       }
     });
   }
@@ -60,7 +69,13 @@ export function AdminLoginForm() {
         />
       </label>
 
-      <input type="hidden" name="turnstileToken" value="dev-bypass" />
+      <div>
+        <TurnstileWidget
+          key={turnstileKey}
+          onVerify={(token) => setTurnstileToken(token)}
+          onExpire={() => setTurnstileToken("")}
+        />
+      </div>
 
       <Button
         type="submit"
