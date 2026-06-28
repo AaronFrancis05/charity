@@ -37,6 +37,7 @@ export default async function proxy(request: NextRequest) {
         adminId: string;
         role: string;
         email: string;
+        name?: string;
         iat: number;
       };
 

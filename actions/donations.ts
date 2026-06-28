@@ -92,6 +92,7 @@ export async function initiateDonation(
       currency: "UGX",
       customerEmail: donorEmail,
       customerName: donorName,
+      paymentMethod: provider,
       redirectUrl: `${baseUrl}/sponsor/${childId}/donate/complete?tx_ref=${txRef}`,
       meta: {
         childId,

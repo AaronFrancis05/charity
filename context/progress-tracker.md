@@ -263,6 +263,71 @@ A comprehensive alignment pass was made against the AGENTS.md spec. All 18 featu
   - Grid: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6` (was 4-col xl).
   - Sort toggle and pagination preserved.
 
+## Logo Integration & Brand Color Pass (June 29)
+
+- **`globals.css`** — Brand colors updated to match logo palette (`--color-brand: #C0006A`, `--color-brand-purple-light: #FFF0F7`, `--color-brand-gold: #F5A623`, `--color-brand-gold-light: #FFF8E3`, `--color-brand-teal: #00A3A3`, `--color-brand-teal-light: #E6F7F7`, `--color-brand-pink-light: #FFE8F0`, `--color-brand-pink-dark: #E80079`).
+- **Images downloaded** — Unsplash children portraits, mission section image, CTA banner, children grid avatars, OG image. All placed in `public/images/sections/` and `public/images/grid/`.
+- **`next.config.ts`** — Added `images.unsplash.com` to `remotePatterns`.
+- **Logo placed** — `openhearts_logo.png` copied to `public/images/logo/`. `open hearts logo.ico` copied to `public/favicon.ico`. `apple-touch-icon.png` generated.
+- **Navbar** — Logo + "Open Hearts Foundation" text, same hamburger/desktop layout.
+- **Landing page** — Logo eyebrow "Open Hearts Foundation", mission section with `mission.jpg` (left) + narrative (right), children avatars grid from `public/images/grid/`, footer with stacked logo + tagline + social links.
+- **Sponsor page** — Centered logo (220×48) above the page heading.
+- **Child detail page** — Logo watermark (soft, low opacity) in sidebar trust mark section.
+- **404 page** — Logo above the "Page not found" heading.
+- **CTA background removed** — `hero-bg.jpg` overlay removed per feedback (too opaque).
+- **OG metadata** — `metadataBase` set to `NEXT_PUBLIC_APP_URL` in root layout. Dynamic OG `generateMetadata()` on child detail page (child photo, name, goal).
+- **`lib/cache.ts`** — Upstash Redis caching layer. `cacheResponse(key, ttl, fetcher)` with JSON serialization. Wired into `getChildren()` (60s TTL) and `getChildById()` (120s TTL).
+- **Build verified** — `npm run build` passes, 15 routes compile cleanly.
+
+## Flutterwave Payment Bug Fix (June 29)
+
+### Critical Fix — Webhook Signature Verification
+**`lib/flutterwave.ts:145-162`** — The `verifyFlutterwaveWebhook()` function was computing an
+HMAC-SHA256 of the request body and comparing it to the `verif-hash` header. This is incorrect
+for Flutterwave — the `verif-hash` header is the exact static hash value configured in the
+Flutterwave dashboard, not an HMAC digest of the payload. Every real webhook was being rejected.
+
+**Fix**: Replaced HMAC computation with direct `timingSafeEqual()` comparison between the header
+value and `FLUTTERWAVE_WEBHOOK_SECRET`. Added length guard and try/catch wrapper. Removed the
+`require("crypto")` CJS call — `timingSafeEqual` is now a proper ESM import.
+
+### Enhancement — Payment Method Routing
+**`lib/flutterwave.ts:54-62`** — `createFlutterwavePayment()` now passes `payment_options` and
+`payment_type` to Flutterwave based on the donor's selected provider:
+- `FLUTTERWAVE` → `payment_options: "card"`
+- `MTN_MOMO` / `AIRTEL_MONEY` → `payment_options: "mobilemoneyuganda"` +
+  `payment_type: "mobilemoneyuganda"`
+
+Previously no payment options were passed, so Flutterwave's hosted page showed all methods
+regardless of what the donor selected on our site.
+
+### Integration
+- `FlutterwavePaymentParams` now accepts optional `paymentMethod` field
+- `initiateDonation()` in `actions/donations.ts` passes the selected `provider` as
+  `paymentMethod` to `createFlutterwavePayment()`
+- New shared type `FlutterwavePaymentMethod` exported from `lib/flutterwave.ts`
+
+### DB Schema Alignment (Provider Enum + donor_name)
+Two mismatches between the code and DB schema were causing "Failed to record donation" at
+the ledger insert step:
+1. **Provider `FLUTTERWAVE` → `CARD`** — The DB check constraint (`fix-provider-enum`
+   migration) accepts `CARD`, `MTN_MOMO`, `AIRTEL_MONEY` but the code was inserting
+   `FLUTTERWAVE`. All code references fixed:
+   - `lib/validations/schemas.ts` — `DonationInitiateSchema.provider` enum
+   - `components/donation/PaymentSelector.tsx` — Provider type and values
+   - `lib/flutterwave.ts` — `FlutterwavePaymentMethod` type and payment_options mapping
+   - `app/sponsor/[id]/donate/page.tsx` — Provider type
+2. **Missing `donor_name` column** — The column didn't exist in `donations_ledger`.
+   Migration `20260629180000_add-donations-ledger-columns.sql` adds it.
+
+### Browser Warnings Fixed
+- **Logo 404** — `app/sponsor/[id]/page.tsx` had two remaining `.jpeg` refs → `.png`
+- **Missing `sizes` prop** — Added `sizes="(max-width: 768px) 100vw, 60vw"` to the
+  fill image on child profile page
+- **Turnstile duplicate** — Removed global `<Script>` from `app/layout.tsx` (widget
+  handles its own loading via `next/script`)
+- **`data-scroll-behavior` warning** — Added `data-scroll-behavior="smooth"` to `<html>`
+
 ## Completion Summary
 
 | Phase | Features | Completed |
@@ -271,4 +336,5 @@ A comprehensive alignment pass was made against the AGENTS.md spec. All 18 featu
 | Phase 2 — Admin CMS | 4 | 4 |
 | Phase 3 — Public & Payments | 5 | 5 |
 | Phase 4 — Polish & Hardening | 3 | 3 |
+| Logo & Brand Pass | — | ✓ |
 | **Total** | **18** | **18** |

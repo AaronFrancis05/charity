@@ -5,13 +5,17 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  /* ── Palette ── */
-  --color-brand-purple: #7c3aed;
-  --color-brand-purple-light: #ede9fe;
-  --color-brand-purple-dark: #5b21b6;
+  /* ── Brand Palette (extracted from logo) ── */
+  --color-brand-primary: #C0006A;
+  --color-brand-secondary: #6B0080;
+  --color-brand-accent: #F5A623;
+  --color-brand-surface: #FFF0F7;
+  --color-brand-purple: #C0006A;
+  --color-brand-purple-light: #FFF0F7;
+  --color-brand-purple-dark: #8B0055;
   --color-brand-teal: #0d9488;
   --color-brand-teal-light: #ccfbf1;
-  --color-accent-amber: #f59e0b;
+  --color-accent-amber: #F5A623;
   --color-accent-rose: #f43f5e;
 
   /* ── Neutrals ── */

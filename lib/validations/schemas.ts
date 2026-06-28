@@ -32,7 +32,7 @@ export const DonationInitiateSchema = z.object({
   childId: z.string().uuid("Invalid child ID"),
   donorEmail: z.string().email("Invalid email address"),
   donorName: z.string().min(2, "Name must be at least 2 characters"),
-  provider: z.enum(["FLUTTERWAVE", "MTN_MOMO", "AIRTEL_MONEY"]),
+  provider: z.enum(["CARD", "MTN_MOMO", "AIRTEL_MONEY"]),
   amountUgx: z.number().int().min(5000, "Minimum donation is UGX 5,000"),
   turnstileToken: z.string().min(1, "Turnstile verification required"),
 });

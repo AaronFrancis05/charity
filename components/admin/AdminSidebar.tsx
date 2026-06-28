@@ -1,12 +1,15 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
+import { Settings, Users } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { adminLogout } from "@/actions/auth";
 
 interface AdminSidebarProps {
   role: string;
   email: string;
+  name: string;
 }
 
 const NAV_ITEMS = [
@@ -39,9 +42,29 @@ const NAV_ITEMS = [
     ),
     superAdminOnly: true,
   },
+  {
+    href: "/admin/dashboard/admins",
+    label: "Manage admins",
+    icon: <Users className="w-4 h-4" />,
+    superAdminOnly: true,
+  },
+  {
+    href: "/admin/dashboard/profile",
+    label: "Profile settings",
+    icon: <Settings className="w-4 h-4" />,
+  },
 ];
 
-export function AdminSidebar({ role, email }: AdminSidebarProps) {
+function Avatar({ name, email }: { name: string; email: string }) {
+  const letter = (name || email).charAt(0).toUpperCase();
+  return (
+    <div className="w-8 h-8 rounded-full bg-[var(--color-brand-purple-light)] text-[var(--color-brand-purple)] flex items-center justify-center text-sm font-bold shrink-0">
+      {letter}
+    </div>
+  );
+}
+
+export function AdminSidebar({ role, email, name }: AdminSidebarProps) {
   const pathname = usePathname();
 
   const isActive = (href: string, exact?: boolean) =>
@@ -50,10 +73,21 @@ export function AdminSidebar({ role, email }: AdminSidebarProps) {
   return (
     <aside className="w-64 shrink-0 bg-[var(--color-surface)] border-r border-[var(--color-border)] min-h-screen flex flex-col">
       {/* Brand */}
-      <div className="p-6 border-b border-[var(--color-border)]">
-        <h1 className="font-bold text-lg text-[var(--color-foreground)]">Open Hearts</h1>
-        <p className="text-xs text-[var(--color-text-muted)] mt-0.5">Admin panel</p>
-      </div>
+      <Link href="/admin/dashboard" className="block p-6 border-b border-[var(--color-border)] hover:opacity-80 transition-opacity">
+        <div className="flex items-center gap-3">
+          <Image
+            src="/images/logo/openhearts_logo.png"
+            alt="Open Hearts Foundation"
+            width={36}
+            height={36}
+            className="rounded-full object-cover shrink-0"
+          />
+          <div>
+            <h1 className="font-bold text-sm text-[var(--color-foreground)]">Open Hearts</h1>
+            <p className="text-xs text-[var(--color-text-muted)]">Admin panel</p>
+          </div>
+        </div>
+      </Link>
 
       {/* Nav */}
       <nav className="flex-1 p-4 space-y-1">
@@ -79,8 +113,19 @@ export function AdminSidebar({ role, email }: AdminSidebarProps) {
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-[var(--color-border)]">
-        <p className="text-xs text-[var(--color-text-muted)] truncate mb-3">{email}</p>
+      <div className="p-4 border-t border-[var(--color-border)] space-y-3">
+        <Link
+          href="/admin/dashboard/profile"
+          className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
+        >
+          <Avatar name={name} email={email} />
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-[var(--color-foreground)] truncate">
+              {name || email.split("@")[0]}
+            </p>
+            <p className="text-xs text-[var(--color-text-muted)] truncate">{email}</p>
+          </div>
+        </Link>
         <form action={adminLogout}>
           <button
             type="submit"

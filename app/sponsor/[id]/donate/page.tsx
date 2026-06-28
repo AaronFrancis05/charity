@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { posthog } from "@/lib/posthog-client";
 
-type Provider = "FLUTTERWAVE" | "MTN_MOMO" | "AIRTEL_MONEY";
+type Provider = "CARD" | "MTN_MOMO" | "AIRTEL_MONEY";
 
 export default function DonatePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);

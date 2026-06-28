@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Search } from "lucide-react";
 import { getChildren } from "@/actions/children";
 import { Navbar } from "@/components/layout/Navbar";
@@ -7,7 +8,16 @@ import { ChildCard } from "@/components/cards/ChildCard";
 import { Badge } from "@/components/ui/badge";
 import type { ChildWithFunding } from "@/actions/children";
 
-export const metadata = { title: "Sponsor a Child — Open Hearts Foundation" };
+export const metadata = {
+  title: "Sponsor a Child in Uganda — Open Hearts Foundation",
+  description:
+    "Browse children waiting for sponsorship in Uganda. Your monthly support provides education, food, shelter, and hope for a child in need.",
+  openGraph: {
+    title: "Sponsor a Child in Uganda — Open Hearts Foundation",
+    description:
+      "Browse children waiting for sponsorship. Walk alongside a child through education and opportunity.",
+  },
+};
 
 const STATUS_CHIPS = [
   { label: "All", value: "all" },
@@ -91,6 +101,15 @@ export default async function SponsorPage({
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
         {/* Header */}
         <div className="mb-10 text-center sm:text-left">
+          <div className="flex justify-center sm:justify-start mb-4">
+            <Image
+              src="/images/logo/openhearts_logo.png"
+              alt="Open Hearts Foundation"
+              width={48}
+              height={48}
+              className="rounded-full object-cover shadow-sm"
+            />
+          </div>
           <Badge variant="purple" className="mb-4">
             Sponsorship
           </Badge>
