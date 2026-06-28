@@ -344,15 +344,24 @@ export default async function HomePage() {
               </div>
             </div>
             <div className="flex gap-6">
-              {["Privacy", "Terms", "Contact"].map((link) => (
-                <Link
-                  key={link}
-                  href="#"
-                  className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] transition-colors"
-                >
-                  {link}
-                </Link>
-              ))}
+              <Link
+                href="/privacy"
+                className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] transition-colors"
+              >
+                Privacy
+              </Link>
+              <Link
+                href="/terms"
+                className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] transition-colors"
+              >
+                Terms
+              </Link>
+              <Link
+                href="/contact"
+                className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] transition-colors"
+              >
+                Contact
+              </Link>
             </div>
           </div>
           <p className="text-xs text-[var(--color-text-muted)] text-center sm:text-left">
