@@ -1,5 +1,6 @@
 "use server";
 
+import { z } from "zod";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
@@ -10,7 +11,14 @@ import { AdminLoginSchema } from "@/lib/validations/schemas";
 import { getClientIp } from "@/lib/client-ip";
 import { hashIp } from "@/lib/utils";
 import { captureServerEvent } from "@/lib/posthog-server";
+import { revalidatePath } from "next/cache";
 import crypto from "crypto";
+
+const ValidateInviteTokenSchema = z.string().min(1);
+const AcceptInviteSchema = z.object({
+  token: z.string().min(1),
+  password: z.string().min(8),
+});
 
 const SESSION_SECRET = process.env.INSFORGE_SERVICE_KEY || "dev-secret";
 
@@ -234,13 +242,18 @@ export async function updateAdminProfile(
 }
 
 export async function validateInviteToken(
-  token: string
+  token: unknown
 ): Promise<{ success: boolean; error?: string; data?: { email: string; role: string } }> {
+  const parsed = ValidateInviteTokenSchema.safeParse(token);
+  if (!parsed.success) {
+    return { success: false, error: "Invalid token" };
+  }
+
   try {
     const { data, error } = await insforgeServer.database
       .from("admin_invitations")
       .select("email, role, expires_at, used_at")
-      .eq("token", token)
+      .eq("token", parsed.data)
       .single();
 
     if (error || !data) {
@@ -265,29 +278,25 @@ export async function validateInviteToken(
 export async function acceptInvite(
   formData: FormData
 ): Promise<{ success: boolean; error?: string }> {
-  const token = formData.get("token") as string;
-  const password = formData.get("password") as string;
-
-  if (!token || !password) {
-    return { success: false, error: "Token and password are required." };
-  }
-
-  if (password.length < 8) {
-    return { success: false, error: "Password must be at least 8 characters long." };
-  }
-
   try {
+    const raw = Object.fromEntries(formData.entries());
+    const parsed = AcceptInviteSchema.safeParse(raw);
+
+    if (!parsed.success) {
+      return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+    }
+
+    const { token, password } = parsed.data;
+
     const { data: invitation, error: lookupError } = await insforgeServer.database
       .from("admin_invitations")
       .select("*")
       .eq("token", token)
+      .is("used_at", null)
       .single();
 
     if (lookupError || !invitation) {
-      return { success: false, error: "Invalid invitation link." };
-    }
-    if (invitation.used_at) {
-      return { success: false, error: "This invitation has already been used." };
+      return { success: false, error: "Invalid or already used invitation link." };
     }
 
     const expiresAt = new Date(invitation.expires_at).getTime();
@@ -296,6 +305,18 @@ export async function acceptInvite(
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
+
+    // Update invitation to used first to prevent race conditions
+    const { error: updateError } = await insforgeServer.database
+      .from("admin_invitations")
+      .update({ used_at: new Date().toISOString() })
+      .eq("id", invitation.id)
+      .is("used_at", null);
+
+    if (updateError) {
+      console.error("[auth/acceptInvite] Failed to mark invitation as used:", updateError);
+      return { success: false, error: "Invitation already consumed or database error." };
+    }
 
     const { data: newUser, error: insertError } = await insforgeServer.database
       .from("admins")
@@ -311,17 +332,6 @@ export async function acceptInvite(
     if (insertError || !newUser) {
       console.error("[auth/acceptInvite] Error creating admin:", insertError);
       return { success: false, error: "Could not create your account." };
-    }
-
-    const { error: updateError } = await insforgeServer.database
-      .from("admin_invitations")
-      .update({ used_at: new Date().toISOString() })
-      .eq("id", invitation.id);
-
-    if (updateError) {
-      // If this fails, we should ideally roll back the user creation.
-      // For now, we'll log the error.
-      console.error("[auth/acceptInvite] Failed to mark invitation as used:", updateError);
     }
 
     // Auto-login after accepting invite
@@ -346,12 +356,17 @@ export async function acceptInvite(
       path: "/",
     });
 
-    await insforgeServer.database.from("admin_audit_logs").insert({
+    const { error: auditError } = await insforgeServer.database.from("admin_audit_logs").insert({
       admin_id: newUser.id,
       event_type: "invite_accepted",
       metadata: { role: invitation.role },
     });
 
+    if (auditError) {
+      console.error("[auth/acceptInvite] Audit log error:", auditError);
+    }
+
+    revalidatePath("/admin/dashboard/admins");
     return { success: true };
   } catch (err) {
     console.error("[auth/acceptInvite]", err);
