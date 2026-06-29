@@ -17,12 +17,27 @@ function requireEnv(name) {
   return value;
 }
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
 function toDate(age) {
   const year = new Date().getFullYear() - age;
   const month = String(Math.floor(Math.random() * 12) + 1).padStart(2, "0");
   const day = String(Math.floor(Math.random() * 28) + 1).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
+
+const IMAGE_MAP = {
+  "Nakato Grace": "grace.jpg",
+  "Okello Peter": "joseph.jpg",
+  "Nantongo Sarah": "amara.jpg",
+  "Mwanga Daniel": "david.jpg",
+  "Kyomugisha Patricia": "fatuma.jpg",
+  "Wasswa Robert": "moses.jpg",
+  "Nabaweesi Ruth": "ruth.jpg",
+  "Ssempijja John": "john.jpg",
+  "Nakandi Maria": "maria.jpg",
+  "Kato Samuel": "samuel.jpg",
+};
 
 const CHILDREN = [
   {
@@ -146,13 +161,14 @@ async function main() {
 
   let inserted = 0;
   for (const child of CHILDREN) {
+    const filename = IMAGE_MAP[child.name] || "placeholder.jpg";
     const record = {
       name: child.name,
       date_of_birth: toDate(child.age),
       region: child.region,
       narrative: child.narrative,
       goal_monthly_ugx: child.goal_monthly_ugx,
-      profile_image_url: `https://placehold.co/400x500?text=${encodeURIComponent(child.name)}`,
+      profile_image_url: `${APP_URL}/images/children/${filename}`,
       video_url: null,
       is_active: true,
       created_by: admin.id,

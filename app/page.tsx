@@ -1,5 +1,8 @@
 import Link from "next/link";
+import Image from "next/image";
+import { Metadata } from "next";
 import { getChildren } from "@/actions/children";
+import { computeAge } from "@/lib/utils";
 import type { ChildProfile } from "@/actions/children";
 
 export const dynamic = "force-dynamic";
@@ -18,6 +21,7 @@ const FALLBACK_CHILDREN = [
     age: 12,
     region: "Kampala",
     sponsoredYears: 2,
+    image: "/images/children/grace.jpg",
     quote:
       '"Before Open Hearts Foundation, I thought school was just a dream. Now I want to be a nurse, so I can help others like me."',
     initials: "G",
@@ -28,6 +32,7 @@ const FALLBACK_CHILDREN = [
     age: 15,
     region: "Gulu",
     sponsoredYears: 4,
+    image: "/images/children/joseph.jpg",
     quote:
       '"My family couldn\'t afford my fees. Open Hearts Foundation gave me a second chance. I want to be an engineer."',
     initials: "J",
@@ -38,20 +43,12 @@ const FALLBACK_CHILDREN = [
     age: 9,
     region: "Jinja",
     sponsoredYears: 1,
+    image: "/images/children/amara.jpg",
     quote:
       '"I love reading and drawing. I want to be a teacher one day, so I can help children learn."',
     initials: "A",
   },
 ];
-
-function computeAge(birthDate: string) {
-  const today = new Date();
-  const birth = new Date(birthDate);
-  let age = today.getFullYear() - birth.getFullYear();
-  const m = today.getMonth() - birth.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
-  return age;
-}
 
 export default async function HomePage() {
   let featured: (ChildProfile & { initials: string; sponsoredYears: number; quote: string })[] = [];
@@ -90,8 +87,17 @@ export default async function HomePage() {
       {/* ── Navbar ── */}
       <nav className="bg-[var(--color-surface)] border-b border-[var(--color-border)] sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="font-semibold text-lg text-[var(--color-foreground)]">
-            Open Hearts Foundation
+          <Link href="/" className="flex items-center gap-2.5">
+            <Image
+              src="/images/logo/openhearts_logo.png"
+              alt="Open Hearts Foundation"
+              width={28}
+              height={28}
+              className="rounded-full object-cover"
+            />
+            <span className="font-semibold text-lg text-[var(--color-foreground)]">
+              Open Hearts Foundation
+            </span>
           </Link>
           <div className="flex items-center gap-8">
             <a href="#mission" className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-brand-purple)] transition-colors hidden sm:block">
@@ -118,22 +124,52 @@ export default async function HomePage() {
 
       {/* ── Hero ── */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-20 sm:py-24">
-        <div className="bg-[var(--color-brand-purple-light)] rounded-[var(--radius-xl)] px-6 sm:px-12 py-16 sm:py-20 text-center shadow-[var(--shadow-card)]">
-          <span className="inline-block rounded-[var(--radius-full)] bg-[var(--color-brand-purple)]/10 text-[var(--color-brand-purple)] text-[11px] font-semibold tracking-widest uppercase px-3 py-1 mb-6">
-            Since 2018
-          </span>
+        <div className="relative bg-[var(--color-brand-purple-light)] rounded-[var(--radius-xl)] px-6 sm:px-12 py-16 sm:py-20 text-center shadow-[var(--shadow-card)] overflow-hidden">
+          <Image
+            src="/images/sections/hero-bg.jpg"
+            alt=""
+            fill
+            loading="eager"
+            className="object-cover opacity-25"
+            sizes="(max-width: 768px) 100vw, 1152px"
+            aria-hidden="true"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-brand-purple-light)] via-transparent to-[var(--color-brand-purple-light)] opacity-60" />
+          <div className="relative z-10">
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <span className="text-[13px] font-bold tracking-[0.15em] text-[var(--color-brand-purple)] uppercase">
+              Educate<span className="text-[var(--color-text-muted)]">.</span>
+            </span>
+            <span className="text-[13px] font-bold tracking-[0.15em] text-[var(--color-brand-purple)] uppercase">
+              Nurture<span className="text-[var(--color-text-muted)]">.</span>
+            </span>
+            <span className="text-[13px] font-bold tracking-[0.15em] text-[var(--color-brand-purple)] uppercase">
+              Empower<span className="text-[var(--color-text-muted)]">.</span>
+            </span>
+          </div>
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <Image
+              src="/images/logo/openhearts_logo.png"
+              alt=""
+              width={24}
+              height={24}
+              className="rounded-full object-cover opacity-90"
+              aria-hidden="true"
+            />
+            <span className="inline-block rounded-[var(--radius-full)] bg-[var(--color-brand-purple)]/10 text-[var(--color-brand-purple)] text-[11px] font-semibold tracking-widest uppercase px-3 py-1">
+              Since 2018
+            </span>
+          </div>
           <h1 className="text-[clamp(36px,5vw,52px)] font-extrabold text-[var(--color-foreground)] leading-tight mb-4">
             Every child in Uganda deserves a{" "}
             <span className="text-[var(--color-brand-purple)]">future</span>.
           </h1>
-          <p className="text-base text-[var(--color-text-secondary)] max-w-lg mx-auto leading-relaxed mb-8">
-            A child&apos;s potential should never{" "}
-            <span className="text-[var(--color-brand-purple)] font-medium">be defined</span> by their
-            circumstances. Through{" "}
-            <span className="text-[var(--color-brand-purple)] font-medium">long-term sponsorship</span>,
-            we walk with children from{" "}
-            <span className="text-[var(--color-brand-purple)] font-medium">childhood</span> to
-            <span className="text-[var(--color-brand-purple)] font-medium">&nbsp;independence</span>.
+          <p className="text-base text-[var(--color-text-secondary)] max-w-xl mx-auto leading-relaxed mb-8">
+            We walk alongside children from childhood to independence — through{" "}
+            <span className="text-[var(--color-brand-purple)] font-semibold">education</span>,
+            <span className="text-[var(--color-brand-purple)] font-semibold">&nbsp;healthcare</span>, and
+            <span className="text-[var(--color-brand-purple)] font-semibold">&nbsp;mentorship</span>.
+            Potential should never be defined by circumstance.
           </p>
           <div className="flex items-center justify-center gap-3">
             <Link
@@ -148,6 +184,7 @@ export default async function HomePage() {
             >
               Our story
             </a>
+          </div>
           </div>
         </div>
       </section>
@@ -177,12 +214,14 @@ export default async function HomePage() {
               Read our story
             </a>
           </div>
-          <div className="relative">
-            <div className="bg-[var(--color-brand-purple-light)] rounded-[var(--radius-xl)] h-64 sm:h-72 w-full flex items-center justify-center">
-              <span className="text-6xl text-[var(--color-brand-purple)]/20 font-bold">
-                {featured.length > 0 ? featured[0].initials : "O"}H
-              </span>
-            </div>
+          <div className="relative rounded-[var(--radius-xl)] overflow-hidden w-full aspect-[4/3]">
+            <Image
+              src="/images/sections/mission-right.jpg"
+              alt="Open Hearts Foundation mentors working alongside children in Uganda"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 50vw"
+            />
             <div className="absolute bottom-4 right-4 bg-[var(--color-surface)] rounded-[var(--radius-lg)] shadow-[var(--shadow-card)] px-4 py-3">
               <span className="text-sm font-semibold text-[var(--color-foreground)]">5 communities</span>
             </div>
@@ -205,10 +244,14 @@ export default async function HomePage() {
               key={child.id}
               className="bg-[var(--color-surface)] rounded-[var(--radius-xl)] border border-[var(--color-border)] p-6 flex flex-col items-center text-center shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)] hover:-translate-y-1 transition-all duration-200"
             >
-              <div className="w-16 h-16 rounded-full bg-[var(--color-surface-muted)] border-2 border-[var(--color-border)] flex items-center justify-center mb-4">
-                <span className="text-xl font-bold text-[var(--color-text-muted)]">
-                  {child.initials}
-                </span>
+              <div className="w-16 h-16 rounded-full overflow-hidden bg-[var(--color-surface-muted)] border-2 border-[var(--color-border)] mb-4">
+                <Image
+                  src={child.profile_image_url || "/images/children/placeholder.jpg"}
+                  alt={child.name}
+                  width={64}
+                  height={64}
+                  className="w-full h-full object-cover"
+                />
               </div>
               <h3 className="font-bold text-base text-[var(--color-foreground)]">
                 {child.name}, {computeAge(child.date_of_birth)}
@@ -252,45 +295,81 @@ export default async function HomePage() {
 
       {/* ── CTA Banner ── */}
       <section id="involved" className="max-w-6xl mx-auto px-4 sm:px-6 py-20 sm:py-24">
-        <div className="bg-[var(--color-brand-purple-light)] rounded-[var(--radius-2xl)] px-8 py-14 sm:py-16 text-center">
+        <div className="relative bg-[var(--color-brand-purple-light)] rounded-[var(--radius-2xl)] px-8 py-14 sm:py-16 text-center overflow-hidden">
+          <Image
+            src="/images/sections/hero-bg.jpg"
+            alt=""
+            fill
+            className="object-cover opacity-30"
+            sizes="(max-width: 768px) 100vw, 1152px"
+            aria-hidden="true"
+          />
+          <div className="relative z-10">
           <h2 className="text-[clamp(24px,3vw,36px)] font-bold text-[var(--color-foreground)] mb-4">
-            Be the reason a child smiles{" "}
-            <span className="text-[var(--color-brand-purple)]">today</span>.
-          </h2>
-          <p className="text-sm text-[var(--color-text-secondary)] max-w-md mx-auto mb-8 leading-relaxed">
-            Your sponsorship is more than a donation — it&apos;s a promise. A promise
-            that a child will not face tomorrow alone.
-          </p>
-          <Link
-            href="/sponsor"
-            className="inline-block rounded-[var(--radius-full)] bg-[var(--color-brand-purple)] text-white font-semibold px-9 py-3.5 hover:bg-[var(--color-brand-purple-dark)] transition-colors shadow-sm"
-          >
-            Walk with a child
-          </Link>
-          <p className="mt-4 text-xs text-[var(--color-text-muted)] flex items-center justify-center gap-1.5">
-            <span className="inline-block w-2 h-2 rounded-full bg-[var(--color-success)]" />
+              Be the reason a child smiles{" "}
+              <span className="text-[var(--color-brand-purple)]">today</span>.
+            </h2>
+            <p className="text-sm text-[var(--color-text-secondary)] max-w-md mx-auto mb-8 leading-relaxed">
+              Your sponsorship is more than a donation — it&apos;s a promise. A promise
+              that a child will not face tomorrow alone.
+            </p>
+            <Link
+              href="/sponsor"
+              className="inline-block rounded-[var(--radius-full)] bg-[var(--color-brand-purple)] text-white font-semibold px-9 py-3.5 hover:bg-[var(--color-brand-purple-dark)] transition-colors shadow-sm"
+            >
+              Walk with a child
+            </Link>
+            <p className="mt-4 text-xs text-[var(--color-text-muted)] flex items-center justify-center gap-1.5">
+              <span className="inline-block w-2 h-2 rounded-full bg-[var(--color-success)]" />
             Join 300+ sponsors who are changing lives
           </p>
+          </div>
         </div>
       </section>
 
       {/* ── Footer ── */}
-      <footer className="border-t border-[var(--color-border)] py-10">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-[var(--color-text-muted)]">
-            © 2026 Open Hearts Foundation · Registered Charity #1130627
-          </p>
-          <div className="flex gap-6">
-            {["Privacy", "Terms", "Contact"].map((link) => (
+      <footer className="border-t border-[var(--color-border)] py-12">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-8 mb-8">
+            <div className="flex flex-col items-center sm:items-start gap-3">
+              <div className="flex items-center gap-3">
+                <Image
+                  src="/images/logo/openhearts_logo.png"
+                  alt="Open Hearts Foundation"
+                  width={48}
+                  height={48}
+                  className="rounded-full object-cover"
+                />
+                <div>
+                  <p className="font-bold text-sm text-[var(--color-brand-purple)]">Open Hearts Foundation</p>
+                  <p className="text-xs text-[var(--color-text-muted)] italic">Giving with Kindness and Love</p>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-6">
               <Link
-                key={link}
-                href="#"
+                href="/privacy"
                 className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] transition-colors"
               >
-                {link}
+                Privacy
               </Link>
-            ))}
+              <Link
+                href="/terms"
+                className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] transition-colors"
+              >
+                Terms
+              </Link>
+              <Link
+                href="/contact"
+                className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] transition-colors"
+              >
+                Contact
+              </Link>
+            </div>
           </div>
+          <p className="text-xs text-[var(--color-text-muted)] text-center sm:text-left">
+            © 2026 Open Hearts Foundation · Registered Charity #1130627
+          </p>
         </div>
       </footer>
     </div>

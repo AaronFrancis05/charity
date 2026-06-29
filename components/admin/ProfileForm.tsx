@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Upload, Image as ImageIcon, Video } from "lucide-react";
 import type { ChildProfile } from "@/actions/children";
 
 const REGION_OPTIONS = [
@@ -55,6 +56,7 @@ export function ProfileForm({ child, mode }: ProfileFormProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
+  const [videoUploading, setVideoUploading] = useState(false);
   const [imageUrl, setImageUrl] = useState(child?.profile_image_url ?? "");
   const [videoUrl, setVideoUrl] = useState(child?.video_url ?? "");
   const [region, setRegion] = useState(child?.region ?? "");
@@ -66,12 +68,14 @@ export function ProfileForm({ child, mode }: ProfileFormProps) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setImageUploading(true);
+    if (type === "image") setImageUploading(true);
+    else setVideoUploading(true);
     const fd = new FormData();
     fd.append("file", file);
 
     const result = await uploadChildMedia(fd, type);
-    setImageUploading(false);
+    if (type === "image") setImageUploading(false);
+    else setVideoUploading(false);
 
     if (!result.success) {
       setError(result.error ?? "Upload failed");
@@ -195,9 +199,12 @@ export function ProfileForm({ child, mode }: ProfileFormProps) {
 
       {/* Image upload */}
       <div>
-        <label className="text-sm font-medium text-[var(--color-foreground)] block mb-1.5">
-          Profile photo
-        </label>
+        <div className="flex items-center gap-1.5 mb-1.5">
+          <ImageIcon className="w-4 h-4 text-[var(--color-text-secondary)]" />
+          <span className="text-sm font-medium text-[var(--color-foreground)]">
+            Profile photo
+          </span>
+        </div>
         {imageUrl && (
           <img
             src={imageUrl}
@@ -205,12 +212,16 @@ export function ProfileForm({ child, mode }: ProfileFormProps) {
             className="w-24 h-24 rounded-[var(--radius-lg)] object-cover mb-2 border border-[var(--color-border)]"
           />
         )}
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => handleFileUpload(e, "image")}
-          className="text-sm text-[var(--color-text-secondary)]"
-        />
+        <label className="inline-flex items-center gap-2 cursor-pointer rounded-[var(--radius-md)] border border-[var(--color-border)] px-4 py-2 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-muted)] transition-colors">
+          <Upload className="w-4 h-4" />
+          <span>Choose image</span>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => handleFileUpload(e, "image")}
+            className="sr-only"
+          />
+        </label>
         {imageUploading && (
           <p className="text-xs text-[var(--color-text-muted)] mt-1">Uploading...</p>
         )}
@@ -218,21 +229,33 @@ export function ProfileForm({ child, mode }: ProfileFormProps) {
 
       {/* Video upload */}
       <div>
-        <label className="text-sm font-medium text-[var(--color-foreground)] block mb-1.5">
-          Profile video{" "}
-          <span className="text-[var(--color-text-muted)] font-normal">(optional)</span>
-        </label>
+        <div className="flex items-center gap-1.5 mb-1.5">
+          <Video className="w-4 h-4 text-[var(--color-text-secondary)]" />
+          <span className="text-sm font-medium text-[var(--color-foreground)]">
+            Profile video{" "}
+            <span className="text-[var(--color-text-muted)] font-normal">(optional)</span>
+          </span>
+        </div>
         {videoUrl && (
-          <p className="text-xs text-[var(--color-success)] mb-1">
-            ✓ Video uploaded
+          <p className="text-xs text-[var(--color-success)] mb-1 flex items-center gap-1">
+            <Video className="w-3.5 h-3.5" />
+            Video uploaded
           </p>
         )}
-        <input
-          type="file"
-          accept="video/*"
-          onChange={(e) => handleFileUpload(e, "video")}
-          className="text-sm text-[var(--color-text-secondary)]"
-        />
+        <label className="inline-flex items-center gap-2 cursor-pointer rounded-[var(--radius-md)] border border-[var(--color-border)] px-4 py-2 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-muted)] transition-colors">
+          <Upload className="w-4 h-4" />
+          <span>{videoUploading ? "Uploading..." : "Choose video"}</span>
+          <input
+            type="file"
+            accept="video/*"
+            onChange={(e) => handleFileUpload(e, "video")}
+            className="sr-only"
+            disabled={videoUploading}
+          />
+        </label>
+        {videoUploading && (
+          <p className="text-xs text-[var(--color-text-muted)] mt-1">Uploading...</p>
+        )}
         <p className="text-xs text-[var(--color-text-muted)] mt-1">
           16:9 recommended. No audio autoplay.
         </p>

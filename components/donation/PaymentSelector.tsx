@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 
-type Provider = "FLUTTERWAVE" | "MTN_MOMO" | "AIRTEL_MONEY";
+type Provider = "CARD" | "MTN_MOMO" | "AIRTEL_MONEY";
 
 interface PaymentSelectorProps {
   selected: Provider | null;
@@ -10,7 +10,7 @@ interface PaymentSelectorProps {
 }
 
 const PROVIDERS: { value: Provider; label: string; subtitle: string; badge: string }[] = [
-  { value: "FLUTTERWAVE", label: "Card", subtitle: "Visa, Mastercard, Apple Pay", badge: "Card" },
+  { value: "CARD", label: "Card", subtitle: "Visa, Mastercard, Apple Pay", badge: "Card" },
   { value: "MTN_MOMO", label: "MTN MoMo", subtitle: "Mobile Money Uganda", badge: "MTN MoMo" },
   { value: "AIRTEL_MONEY", label: "Airtel Money", subtitle: "Mobile Money Uganda", badge: "Airtel" },
 ];
@@ -38,7 +38,7 @@ export function PaymentSelector({ selected, onSelect }: PaymentSelectorProps) {
             </div>
             <span className={cn(
               "rounded-[var(--radius-full)] px-2 py-0.5 text-[12px] font-medium",
-              p.value === "FLUTTERWAVE" && "bg-[var(--color-brand-purple-light)] text-[var(--color-brand-purple)]",
+              p.value === "CARD" && "bg-[var(--color-brand-purple-light)] text-[var(--color-brand-purple)]",
               p.value === "MTN_MOMO" && "bg-[#FFF9E6] text-[#B38F00]",
               p.value === "AIRTEL_MONEY" && "bg-[var(--color-error-bg)] text-[var(--color-error)]"
             )}>

@@ -6,6 +6,7 @@ import { insforgeServer } from "@/lib/insforge-server";
 import { CreateChildSchema, UpdateChildSchema } from "@/lib/validations/schemas";
 import { getAdminSession } from "./auth";
 import { captureServerEvent } from "@/lib/posthog-server";
+import { cacheGet, cacheInvalidate } from "@/lib/cache";
 import type { CreateChildInput, UpdateChildInput } from "@/lib/validations/schemas";
 
 export type ActionResult<T = void> =
@@ -57,55 +58,61 @@ export async function getChildren(opts?: {
   region?: string;
   searchQuery?: string;
 }): Promise<ChildProfile[]> {
-  let query = insforgeServer.database
-    .from("children_profiles")
-    .select("*")
-    .order("created_at", { ascending: false });
+  const cacheKey = `children:${opts?.activeOnly ? "active" : "all"}:${opts?.region ?? "*"}:${opts?.searchQuery ?? "*"}`;
 
-  if (opts?.activeOnly) {
-    query = query.eq("is_active", true);
-  }
-  if (opts?.region) {
-    query = query.eq("region", opts.region);
-  }
-  if (opts?.searchQuery) {
-    query = query.ilike("name", `%${opts.searchQuery}%`);
-  }
+  return cacheGet(cacheKey, async () => {
+    let query = insforgeServer.database
+      .from("children_profiles")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-  const { data, error } = await query;
-  if (error) throw new Error(error.message);
-  return (data ?? []) as ChildProfile[];
+    if (opts?.activeOnly) {
+      query = query.eq("is_active", true);
+    }
+    if (opts?.region) {
+      query = query.eq("region", opts.region);
+    }
+    if (opts?.searchQuery) {
+      query = query.ilike("name", `%${opts.searchQuery}%`);
+    }
+
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    return (data ?? []) as ChildProfile[];
+  }, 300);
 }
 
 export async function getChildById(id: string): Promise<ChildWithFunding | null> {
-  const { data: child, error } = await insforgeServer.database
-    .from("children_profiles")
-    .select("*")
-    .eq("id", id)
-    .single();
+  return cacheGet(`child:${id}`, async () => {
+    const { data: child, error } = await insforgeServer.database
+      .from("children_profiles")
+      .select("*")
+      .eq("id", id)
+      .single();
 
-  if (error || !child) return null;
+    if (error || !child) return null;
 
-  // Aggregate all settled donations — single total, no category breakdown
-  const { data: ledger } = await insforgeServer.database
-    .from("donations_ledger")
-    .select("amount_ugx, donor_email")
-    .eq("child_id", id)
-    .eq("status", "settled");
+    // Aggregate all settled donations — single total, no category breakdown
+    const { data: ledger } = await insforgeServer.database
+      .from("donations_ledger")
+      .select("amount_ugx, donor_email")
+      .eq("child_id", id)
+      .eq("status", "settled");
 
-  let raisedUgx = 0;
-  const donorEmails = new Set<string>();
+    let raisedUgx = 0;
+    const donorEmails = new Set<string>();
 
-  for (const row of ledger ?? []) {
-    raisedUgx += row.amount_ugx ?? 0;
-    if (row.donor_email) donorEmails.add(row.donor_email);
-  }
+    for (const row of ledger ?? []) {
+      raisedUgx += row.amount_ugx ?? 0;
+      if (row.donor_email) donorEmails.add(row.donor_email);
+    }
 
-  return {
-    ...(child as ChildProfile),
-    raised_ugx: raisedUgx,
-    donor_count: donorEmails.size,
-  };
+    return {
+      ...(child as ChildProfile),
+      raised_ugx: raisedUgx,
+      donor_count: donorEmails.size,
+    } as ChildWithFunding;
+  }, 300); // 5-minute cache
 }
 
 // ── Create ─────────────────────────────────────────────────────────────────
@@ -141,6 +148,10 @@ export async function createChild(
       initialGoal: parsed.data.goal_monthly_ugx,
     },
   }]);
+
+  await cacheInvalidate("children:active:*:*");
+  await cacheInvalidate("children:all:*:*");
+  await cacheInvalidate(`child:${data.id}`);
 
   captureServerEvent("profile_created", session.adminId, {
     adminId: session.adminId,
@@ -189,6 +200,10 @@ export async function updateChild(
     childId: id,
     fieldsChanged,
   });
+
+  await cacheInvalidate("children:active:*:*");
+  await cacheInvalidate("children:all:*:*");
+  await cacheInvalidate(`child:${id}`);
 
   revalidatePath(`/admin/dashboard/children/${id}`);
   revalidatePath("/admin/dashboard/children");

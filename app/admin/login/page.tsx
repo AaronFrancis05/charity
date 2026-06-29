@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { adminLogin } from "@/actions/auth";
 import { AdminLoginForm } from "./login-form";
 
@@ -9,7 +10,15 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-sm">
         {/* Brand */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-[var(--color-foreground)]">Open Hearts Foundation</h1>
+          <Image
+            src="/images/logo/openhearts_logo.png"
+            alt="Open Hearts Foundation"
+            width={64}
+            height={64}
+            className="rounded-full object-cover mx-auto mb-3"
+            priority
+          />
+          <h1 className="text-xl font-bold text-[var(--color-foreground)]">Open Hearts Foundation</h1>
           <p className="text-sm text-[var(--color-text-secondary)] mt-1">Admin panel</p>
         </div>
 

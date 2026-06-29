@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import Script from "next/script";
+import { useEffect, useRef } from "react";
 
 interface TurnstileWidgetProps {
   onVerify: (token: string) => void;
@@ -17,6 +16,7 @@ declare global {
           sitekey: string;
           callback: (token: string) => void;
           "expired-callback"?: () => void;
+          theme?: string;
         }
       ) => string;
       remove: (widgetId: string) => void;
@@ -27,7 +27,6 @@ declare global {
 export function TurnstileWidget({ onVerify, onExpire }: TurnstileWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | undefined>(undefined);
-  const [scriptLoaded, setScriptLoaded] = useState(false);
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!;
 
   const onVerifyRef = useRef(onVerify);
@@ -36,29 +35,31 @@ export function TurnstileWidget({ onVerify, onExpire }: TurnstileWidgetProps) {
   onExpireRef.current = onExpire;
 
   useEffect(() => {
-    if (!scriptLoaded || !containerRef.current || !window.turnstile) return;
+    if (!containerRef.current) return;
 
-    widgetIdRef.current = window.turnstile.render(containerRef.current, {
-      sitekey: siteKey,
-      callback: (token: string) => onVerifyRef.current(token),
-      "expired-callback": () => onExpireRef.current?.(),
-    });
+    const interval = setInterval(() => {
+      if (window.turnstile && containerRef.current) {
+        clearInterval(interval);
+        widgetIdRef.current = window.turnstile.render(containerRef.current, {
+          sitekey: siteKey,
+          callback: (token: string) => onVerifyRef.current(token),
+          "expired-callback": () => onExpireRef.current?.(),
+        });
+      }
+    }, 200);
 
     return () => {
+      clearInterval(interval);
       if (widgetIdRef.current && window.turnstile) {
         window.turnstile.remove(widgetIdRef.current);
       }
     };
-  }, [scriptLoaded, siteKey]);
+  }, [siteKey]);
 
   return (
-    <>
-      <Script
-        src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
-        strategy="afterInteractive"
-        onLoad={() => setScriptLoaded(true)}
-      />
-      <div ref={containerRef} />
-    </>
+    <div
+      ref={containerRef}
+      className="min-h-[65px]"
+    />
   );
 }

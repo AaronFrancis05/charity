@@ -1,9 +1,17 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function NotFound() {
   return (
     <div className="min-h-screen bg-[var(--color-background)] flex items-center justify-center">
-      <div className="text-center">
+      <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-10 shadow-sm text-center max-w-sm">
+        <Image
+          src="/images/logo/openhearts_logo.png"
+          alt="Open Hearts Foundation"
+          width={80}
+          height={80}
+          className="rounded-full object-cover mx-auto mb-6 opacity-60"
+        />
         <h1 className="text-[16px] font-semibold text-[var(--color-foreground)] mb-4">
           Page not found
         </h1>
