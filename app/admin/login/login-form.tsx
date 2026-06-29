@@ -1,15 +1,20 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef } from "react";
 import { adminLogin } from "@/actions/auth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { TurnstileWidget } from "@/components/donation/TurnstileWidget";
+import { TurnstileWidget, TurnstileInstance } from "@/components/donation/TurnstileWidget";
+import Link from "next/link";
 
-export function AdminLoginForm() {
+interface AdminLoginFormProps {
+  alreadyAuthenticated?: boolean;
+}
+
+export function AdminLoginForm({ alreadyAuthenticated }: AdminLoginFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [turnstileToken, setTurnstileToken] = useState("");
-  const [turnstileKey, setTurnstileKey] = useState(0);
+  const turnstileRef = useRef<TurnstileInstance>(null);
   const [isPending, startTransition] = useTransition();
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -28,63 +33,88 @@ export function AdminLoginForm() {
       const result = await adminLogin(formData);
       if (result && !result.success) {
         setError(result.error);
+        // CRITICAL: reset Turnstile so a fresh token is generated for next attempt
         setTurnstileToken("");
-        setTurnstileKey((k) => k + 1);
+        turnstileRef.current?.reset();
       }
     });
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {error && (
-        <div className="bg-[var(--color-error-bg)] border border-[var(--color-error)] rounded-[var(--radius-md)] px-3 py-2.5">
-          <p className="text-sm text-[var(--color-error)]">{error}</p>
+    <div className="space-y-6">
+      {alreadyAuthenticated && (
+        <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
+          <p className="flex items-center gap-2">
+            <span>⚠️</span>
+            <span>
+              You are currently signed in on another session. Signing in here will create a new one.{" "}
+              <Link href="/admin/dashboard" className="underline font-semibold">
+                Go to dashboard instead →
+              </Link>
+            </span>
+          </p>
         </div>
       )}
 
-      <label className="block">
-        <span className="block text-sm font-medium text-[var(--color-foreground)] mb-1">
-          Email address
-        </span>
-        <Input
-          name="email"
-          type="email"
-          autoComplete="email"
-          placeholder="admin@openheartsfoundation.org"
-          required
-        />
-      </label>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {error && (
+          <div className="bg-[var(--color-error-bg)] border border-[var(--color-error)] rounded-[var(--radius-md)] px-3 py-2.5">
+            <p className="text-sm text-[var(--color-error)]">{error}</p>
+          </div>
+        )}
 
-      <label className="block">
-        <span className="block text-sm font-medium text-[var(--color-foreground)] mb-1">
-          Password
-        </span>
-        <Input
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          placeholder="••••••••"
-          required
-          minLength={8}
-        />
-      </label>
+        <label className="block">
+          <span className="block text-sm font-medium text-[var(--color-foreground)] mb-1">
+            Email address
+          </span>
+          <Input
+            name="email"
+            type="email"
+            autoComplete="email"
+            placeholder="admin@openheartsfoundation.org"
+            required
+          />
+        </label>
 
-      <div>
-        <TurnstileWidget
-          key={turnstileKey}
-          onVerify={(token) => setTurnstileToken(token)}
-          onExpire={() => setTurnstileToken("")}
-        />
-      </div>
+        <label className="block">
+          <span className="block text-sm font-medium text-[var(--color-foreground)] mb-1">
+            Password
+          </span>
+          <Input
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            placeholder="••••••••"
+            required
+            minLength={8}
+          />
+        </label>
 
-      <Button
-        type="submit"
-        variant="default"
-        loading={isPending}
-        className="w-full"
-      >
-        Sign in
-      </Button>
-    </form>
+        <div>
+          <TurnstileWidget
+            ref={turnstileRef}
+            onVerify={(token) => setTurnstileToken(token)}
+            onExpire={() => {
+              setTurnstileToken("");
+              turnstileRef.current?.reset();
+            }}
+            onError={(err) => {
+              setError(err);
+              setTurnstileToken("");
+            }}
+          />
+        </div>
+
+        <Button
+          type="submit"
+          variant="default"
+          loading={isPending}
+          className="w-full"
+          disabled={!turnstileToken || isPending}
+        >
+          Sign in
+        </Button>
+      </form>
+    </div>
   );
 }

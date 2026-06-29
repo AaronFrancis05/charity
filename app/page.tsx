@@ -126,7 +126,7 @@ export default async function HomePage() {
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-20 sm:py-24">
         <div className="relative bg-[var(--color-brand-purple-light)] rounded-[var(--radius-xl)] px-6 sm:px-12 py-16 sm:py-20 text-center shadow-[var(--shadow-card)] overflow-hidden">
           <Image
-            src="/images/sections/children-hero.jpg"
+            src="/og-image.png"
             alt="Open Hearts Foundation children — joyful and full of hope"
             fill
             priority
@@ -216,7 +216,7 @@ export default async function HomePage() {
           </div>
           <div className="relative rounded-[var(--radius-xl)] overflow-hidden w-full aspect-[4/3]">
             <Image
-              src="/images/sections/children-card.jpg"
+              src="/images/sections/mission-right.jpg"
               alt="Open Hearts Foundation children in Uganda — community and hope"
               fill
               className="object-cover object-center"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { inviteAdmin } from "@/actions/admins";
 import { Card } from "@/components/cards/card";
@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { UserPlus, Mail, Shield } from "lucide-react";
-import { TurnstileWidget } from "@/components/donation/TurnstileWidget";
+import { TurnstileWidget, TurnstileInstance } from "@/components/donation/TurnstileWidget";
 
 interface AdminRecord {
   id: string;
@@ -44,6 +44,7 @@ export function AdminsList({
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("content_admin");
   const [turnstileToken, setTurnstileToken] = useState("");
+  const turnstileRef = useRef<TurnstileInstance>(null);
 
   function handleInvite(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -69,6 +70,8 @@ export function AdminsList({
         router.refresh();
       } else {
         setFormError(result.error ?? "Failed to invite");
+        setTurnstileToken("");
+        turnstileRef.current?.reset();
       }
     });
   }
@@ -143,7 +146,14 @@ export function AdminsList({
                 </Select>
               </div>
               <div className="sm:col-span-3">
-                <TurnstileWidget onVerify={setTurnstileToken} />
+                <TurnstileWidget
+                  ref={turnstileRef}
+                  onVerify={setTurnstileToken}
+                  onExpire={() => {
+                    setTurnstileToken("");
+                    turnstileRef.current?.reset();
+                  }}
+                />
               </div>
               <div className="flex items-end">
                 <Button type="submit" variant="default" loading={isPending} className="w-full" disabled={!turnstileToken}>

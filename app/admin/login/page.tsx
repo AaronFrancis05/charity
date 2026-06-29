@@ -1,10 +1,14 @@
 import Image from "next/image";
+import { headers } from "next/headers";
 import { adminLogin } from "@/actions/auth";
 import { AdminLoginForm } from "./login-form";
 
 export const metadata = { title: "Admin Login — Open Hearts Foundation" };
 
-export default function AdminLoginPage() {
+export default async function AdminLoginPage() {
+  const headersList = await headers();
+  const alreadyAuthenticated = headersList.get("x-already-authenticated") === "1";
+
   return (
     <div className="min-h-screen bg-[var(--color-background)] flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
@@ -26,7 +30,7 @@ export default function AdminLoginPage() {
           <h2 className="text-base font-semibold text-[var(--color-foreground)] mb-5">
             Sign in to continue
           </h2>
-          <AdminLoginForm />
+          <AdminLoginForm alreadyAuthenticated={alreadyAuthenticated} />
         </div>
 
         <p className="text-center text-xs text-[var(--color-text-muted)] mt-6">
