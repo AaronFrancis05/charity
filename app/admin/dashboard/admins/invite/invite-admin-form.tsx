@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useRef } from "react";
 import { inviteAdmin, InviteAdminState } from "@/actions/admins";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TurnstileWidget } from "@/components/donation/TurnstileWidget";
+import { TurnstileWidget, TurnstileInstance } from "@/components/donation/TurnstileWidget";
 import { useState, useEffect } from "react";
 import { CheckCircle, AlertCircle } from "lucide-react";
 
@@ -24,14 +24,18 @@ const initialState: InviteAdminState = {
 export function InviteAdminForm() {
   const [state, formAction] = useActionState(inviteAdmin, initialState);
   const [turnstileToken, setTurnstileToken] = useState("");
+  const turnstileRef = useRef<TurnstileInstance>(null);
   const [formKey, setFormKey] = useState(0);
 
   useEffect(() => {
     if (state.success) {
       setFormKey((prev) => prev + 1);
       setTurnstileToken("");
+    } else if (state.error) {
+      setTurnstileToken("");
+      turnstileRef.current?.reset();
     }
-  }, [state.success]);
+  }, [state.success, state.error]);
 
   return (
     <>
@@ -90,7 +94,14 @@ export function InviteAdminForm() {
             </SelectContent>
           </Select>
         </div>
-        <TurnstileWidget onVerify={setTurnstileToken} />
+        <TurnstileWidget
+          ref={turnstileRef}
+          onVerify={setTurnstileToken}
+          onExpire={() => {
+            setTurnstileToken("");
+            turnstileRef.current?.reset();
+          }}
+        />
         <Button type="submit" disabled={!turnstileToken}>
           Send Invitation
         </Button>

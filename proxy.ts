@@ -22,6 +22,29 @@ export default async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Login page — set header if already authenticated so we can show a notice
+  if (pathname === "/admin/login") {
+    const sessionCookie = request.cookies.get("admin_session")?.value;
+    if (sessionCookie) {
+      try {
+        const dot = sessionCookie.indexOf(".");
+        const encoded = dot === -1 ? sessionCookie : sessionCookie.slice(0, dot);
+        const decoded = atob(encoded);
+        const session = JSON.parse(decoded) as { iat: number };
+        const age = Date.now() - session.iat;
+        
+        if (age <= 8 * 60 * 60 * 1000) {
+          const response = NextResponse.next();
+          response.headers.set("x-already-authenticated", "1");
+          return response;
+        }
+      } catch {
+        // Ignore invalid cookies for the login page notice
+      }
+    }
+    return NextResponse.next();
+  }
+
   // Protect admin paths
   if (ADMIN_PATHS.test(pathname)) {
     const sessionCookie = request.cookies.get("admin_session")?.value;

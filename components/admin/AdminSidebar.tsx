@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Settings, Users, Menu, X } from "lucide-react";
+import { Settings, Users, Menu, X, Home } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { adminLogout } from "@/actions/auth";
 
@@ -128,6 +128,14 @@ function SidebarContent({ role, email, name, onNavClick }: AdminSidebarProps & {
             </p>
             <p className="text-xs text-[var(--color-text-muted)] truncate">{email}</p>
           </div>
+        </Link>
+        <Link
+          href="/"
+          className="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-brand-purple)] transition-colors px-1"
+          onClick={onNavClick}
+        >
+          <Home className="w-4 h-4" />
+          <span>Back to site</span>
         </Link>
         <form action={adminLogout}>
           <button

@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, use } from "react";
+import { useState, use, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { initiateDonation } from "@/actions/donations";
 import { Navbar } from "@/components/layout/Navbar";
 import { PaymentSelector } from "@/components/donation/PaymentSelector";
-import { TurnstileWidget } from "@/components/donation/TurnstileWidget";
+import { TurnstileWidget, TurnstileInstance } from "@/components/donation/TurnstileWidget";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { posthog } from "@/lib/posthog-client";
@@ -23,6 +23,7 @@ export default function DonatePage({ params }: { params: Promise<{ id: string }>
   const [provider, setProvider] = useState<Provider | null>(null);
   const [turnstileToken, setTurnstileToken] = useState("");
   const [turnstileError, setTurnstileError] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileInstance>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -79,6 +80,8 @@ export default function DonatePage({ params }: { params: Promise<{ id: string }>
     } else {
       setError(result.error);
       setSubmitting(false);
+      setTurnstileToken("");
+      turnstileRef.current?.reset();
     }
   }
 
@@ -177,8 +180,12 @@ export default function DonatePage({ params }: { params: Promise<{ id: string }>
                 <p className="text-xs text-[var(--color-error)] mb-2">{turnstileError}</p>
               )}
               <TurnstileWidget
+                ref={turnstileRef}
                 onVerify={(token) => { setTurnstileToken(token); setTurnstileError(null); }}
-                onExpire={() => setTurnstileToken("")}
+                onExpire={() => {
+                  setTurnstileToken("");
+                  turnstileRef.current?.reset();
+                }}
                 onError={(msg) => setTurnstileError(msg)}
               />
             </div>
