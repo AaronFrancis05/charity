@@ -23,18 +23,33 @@ export const metadata: Metadata = {
     description:
       "Sponsor a child in Uganda. Every child deserves a loving home, quality education, and a future full of hope.",
     type: "website",
+    locale: "en_UG",
     images: [
       {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
+        alt: "Open Hearts Foundation — children reaching out with joy and hope",
+        type: "image/jpeg",
+      },
+      {
+        url: "/og-image-square.jpg",
+        width: 1200,
+        height: 1200,
         alt: "Open Hearts Foundation — Giving with Kindness and Love",
+        type: "image/jpeg",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    images: ["/og-image.jpg"],
+    title: "Open Hearts Foundation — Giving with Kindness and Love",
+    description:
+      "Every child in Uganda deserves a future. Walk alongside a child today.",
+    images: {
+      url: "/og-image.jpg",
+      alt: "Open Hearts Foundation — children reaching out with joy and hope",
+    },
   },
   icons: {
     icon: [
