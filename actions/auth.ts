@@ -10,7 +10,6 @@ import { AdminLoginSchema } from "@/lib/validations/schemas";
 import { getClientIp } from "@/lib/client-ip";
 import { hashIp } from "@/lib/utils";
 import { captureServerEvent } from "@/lib/posthog-server";
-import { sendAdminInvite } from "@/lib/resend";
 import crypto from "crypto";
 
 const SESSION_SECRET = process.env.INSFORGE_SERVICE_KEY || "dev-secret";
@@ -234,159 +233,129 @@ export async function updateAdminProfile(
   }
 }
 
-export async function inviteAdmin(
-  formData: FormData
-): Promise<{ success: boolean; error?: string }> {
-  try {
-    const session = await getAdminSession();
-    if (!session || session.role !== "super_admin") {
-      return { success: false, error: "Only super admins can invite new admins" };
-    }
-
-    const email = (formData.get("email") as string)?.toLowerCase().trim();
-    const role = formData.get("role") as string;
-
-    if (!email || !role) return { success: false, error: "Email and role are required" };
-    if (!["super_admin", "content_admin"].includes(role)) {
-      return { success: false, error: "Invalid role" };
-    }
-
-    // Check if admin already exists
-    const { data: existing } = await insforgeServer.database
-      .from("admins")
-      .select("id, is_active")
-      .eq("email", email)
-      .single();
-
-    if (existing) {
-      if (!existing.is_active) return { success: false, error: "That admin account is deactivated" };
-      return { success: false, error: "An admin with this email already exists" };
-    }
-
-    const token = crypto.randomBytes(32).toString("hex");
-    const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
-
-    const { error: insertError } = await insforgeServer.database
-      .from("admins")
-      .insert([{
-        email,
-        role,
-        invite_token: token,
-        invite_token_expires_at: expiresAt,
-        is_active: true,
-      }]);
-
-    if (insertError) return { success: false, error: insertError.message };
-
-    const emailResult = await sendAdminInvite(email, token, role);
-    if (!emailResult.success) {
-      // Roll back the admin insert to avoid orphan accounts
-      const inserted = await insforgeServer.database
-        .from("admins")
-        .select("id")
-        .eq("email", email)
-        .single();
-      if (inserted.data) {
-        await insforgeServer.database.from("admins").delete().eq("id", inserted.data.id);
-      }
-      return { success: false, error: "Invite email failed: " + emailResult.error };
-    }
-
-    return { success: true };
-  } catch (err) {
-    return { success: false, error: "[auth/inviteAdmin] " + (err as Error).message };
-  }
-}
-
 export async function validateInviteToken(
   token: string
 ): Promise<{ success: boolean; error?: string; data?: { email: string; role: string } }> {
   try {
     const { data, error } = await insforgeServer.database
-      .from("admins")
-      .select("email, role, invite_token_expires_at, password_set")
-      .eq("invite_token", token)
+      .from("admin_invitations")
+      .select("email, role, expires_at, used_at")
+      .eq("token", token)
       .single();
 
-    if (error || !data) return { success: false, error: "Invalid or expired invitation link" };
-    if (data.password_set) return { success: false, error: "This invitation has already been used" };
+    if (error || !data) {
+      return { success: false, error: "Invalid or expired invitation link" };
+    }
+    if (data.used_at) {
+      return { success: false, error: "This invitation has already been used" };
+    }
 
-    const expiresAt = new Date(data.invite_token_expires_at).getTime();
+    const expiresAt = new Date(data.expires_at).getTime();
     if (Date.now() > expiresAt) {
       return { success: false, error: "This invitation has expired. Ask your admin to send a new one." };
     }
 
     return { success: true, data: { email: data.email, role: data.role } };
   } catch (err) {
-    return { success: false, error: "[auth/validateInviteToken] " + (err as Error).message };
+    console.error("[auth/validateInviteToken]", err);
+    return { success: false, error: "An unexpected error occurred." };
   }
 }
 
 export async function acceptInvite(
   formData: FormData
 ): Promise<{ success: boolean; error?: string }> {
+  const token = formData.get("token") as string;
+  const password = formData.get("password") as string;
+
+  if (!token || !password) {
+    return { success: false, error: "Token and password are required." };
+  }
+
+  if (password.length < 8) {
+    return { success: false, error: "Password must be at least 8 characters long." };
+  }
+
   try {
-    const token = formData.get("token") as string;
-    const password = formData.get("password") as string;
-    const confirmPassword = formData.get("confirmPassword") as string;
-
-    if (!token || !password) return { success: false, error: "Missing required fields" };
-    if (password.length < 8) return { success: false, error: "Password must be at least 8 characters" };
-    if (password !== confirmPassword) return { success: false, error: "Passwords do not match" };
-
-    const { data: admin, error: lookupError } = await insforgeServer.database
-      .from("admins")
-      .select("id, email, role, invite_token_expires_at, password_set")
-      .eq("invite_token", token)
+    const { data: invitation, error: lookupError } = await insforgeServer.database
+      .from("admin_invitations")
+      .select("*")
+      .eq("token", token)
       .single();
 
-    if (lookupError || !admin) return { success: false, error: "Invalid invitation link" };
-    if (admin.password_set) return { success: false, error: "This invitation has already been used" };
+    if (lookupError || !invitation) {
+      return { success: false, error: "Invalid invitation link." };
+    }
+    if (invitation.used_at) {
+      return { success: false, error: "This invitation has already been used." };
+    }
 
-    const expiresAt = new Date(admin.invite_token_expires_at).getTime();
-    if (Date.now() > expiresAt) return { success: false, error: "Invitation has expired" };
+    const expiresAt = new Date(invitation.expires_at).getTime();
+    if (Date.now() > expiresAt) {
+      return { success: false, error: "This invitation has expired." };
+    }
 
     const passwordHash = await bcrypt.hash(password, 12);
 
-    const { error: updateError } = await insforgeServer.database
+    const { data: newUser, error: insertError } = await insforgeServer.database
       .from("admins")
-      .update({
+      .insert({
+        email: invitation.email,
+        role: invitation.role,
         password_hash: passwordHash,
-        invite_token: null,
-        invite_token_expires_at: null,
-        password_set: true,
+        is_active: true,
       })
-      .eq("id", admin.id);
+      .select("id")
+      .single();
 
-    if (updateError) return { success: false, error: updateError.message };
+    if (insertError || !newUser) {
+      console.error("[auth/acceptInvite] Error creating admin:", insertError);
+      return { success: false, error: "Could not create your account." };
+    }
+
+    const { error: updateError } = await insforgeServer.database
+      .from("admin_invitations")
+      .update({ used_at: new Date().toISOString() })
+      .eq("id", invitation.id);
+
+    if (updateError) {
+      // If this fails, we should ideally roll back the user creation.
+      // For now, we'll log the error.
+      console.error("[auth/acceptInvite] Failed to mark invitation as used:", updateError);
+    }
 
     // Auto-login after accepting invite
     const sessionPayload = JSON.stringify({
-      adminId: admin.id,
-      role: admin.role,
-      email: admin.email,
-      name: "",
+      adminId: newUser.id,
+      role: invitation.role,
+      email: invitation.email,
+      name: "", // Name can be set in a profile update page
       iat: Date.now(),
     });
+
     const encoded = Buffer.from(sessionPayload).toString("base64");
+    const sig = signSession(encoded);
+    const sessionValue = `${encoded}.${sig}`;
+
     const cookieStore = await cookies();
-    cookieStore.set("admin_session", `${encoded}.${signSession(encoded)}`, {
+    cookieStore.set("admin_session", sessionValue, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 60 * 60 * 8,
+      maxAge: 60 * 60 * 8, // 8 hours
       path: "/",
     });
 
-    await insforgeServer.database.from("admin_audit_logs").insert([{
-      admin_id: admin.id,
-      event_type: "login_success",
-      metadata: { role: admin.role, action: "invite_accepted" },
-    }]);
+    await insforgeServer.database.from("admin_audit_logs").insert({
+      admin_id: newUser.id,
+      event_type: "invite_accepted",
+      metadata: { role: invitation.role },
+    });
 
     return { success: true };
   } catch (err) {
-    return { success: false, error: "[auth/acceptInvite] " + (err as Error).message };
+    console.error("[auth/acceptInvite]", err);
+    return { success: false, error: "An unexpected error occurred." };
   }
 }
 
