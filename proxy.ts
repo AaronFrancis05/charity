@@ -31,8 +31,10 @@ export default async function proxy(request: NextRequest) {
     }
 
     try {
-      // Swapped Buffer.from for web-standard atob() to avoid Edge Runtime compilation errors
-      const decoded = atob(sessionCookie);
+      // Cookie is base64(payload).base64(signature) — extract the payload part
+      const dot = sessionCookie.indexOf(".");
+      const encoded = dot === -1 ? sessionCookie : sessionCookie.slice(0, dot);
+      const decoded = atob(encoded);
       const session = JSON.parse(decoded) as {
         adminId: string;
         role: string;
