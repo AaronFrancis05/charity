@@ -210,7 +210,7 @@ export function AdminSidebar({ role, email, name }: AdminSidebarProps) {
           flex flex-col
           transition-transform duration-300 ease-in-out
           ${open ? "translate-x-0" : "-translate-x-full"}
-          lg:translate-x-0 lg:shadow-none lg:z-30 lg:sticky
+          lg:translate-x-0 lg:shadow-none lg:z-30
         `}
       >
         <SidebarContent role={role} email={email} name={name} onNavClick={() => setOpen(false)} />
