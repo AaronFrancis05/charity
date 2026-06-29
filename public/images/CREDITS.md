@@ -15,7 +15,7 @@ Free for commercial and non-commercial use. No attribution required.
 | children/joseph.jpg | fhz0VNLI2HI | Hannah Dean | Young boy walking on dirt road, Uganda |
 | children/amara.jpg | dy5tv6HC3ng | Angelo Casto | Young girl smiling brightly outdoors |
 | children/david.jpg | Nsx-c6r3gNk | Bennett Tobias | Boy smiling leaning beside a gate, Kenya |
-| children/fatuma.jpg | wpMi2COlcM8 | — | Two smiling children posing outdoors |
+| children/fatuma.jpg | wpMi2COlcM8 | Derrick Pare | Two smiling children posing outdoors |
 | children/moses.jpg | OM5ccKiHWiE | Andrew Itaga | Three children laughing, Karamoja Uganda |
 | children/placeholder.jpg | OM5ccKiHWiE | Andrew Itaga | Three children laughing, Karamoja Uganda |
 | og-image.jpg | RzPWYL3G6Pw | Zach Wear | Classroom of students at desks, Iganga Uganda |

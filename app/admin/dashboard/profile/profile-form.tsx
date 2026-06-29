@@ -12,6 +12,7 @@ interface ProfileSettingsFormProps {
   email: string;
   name: string;
   role: string;
+  avatarUrl?: string;
 }
 
 function AvatarDisplay({ name, email, url }: { name: string; email: string; url?: string }) {
@@ -32,11 +33,11 @@ function AvatarDisplay({ name, email, url }: { name: string; email: string; url?
   );
 }
 
-export function ProfileSettingsForm({ adminId, email, name, role }: ProfileSettingsFormProps) {
+export function ProfileSettingsForm({ adminId, email, name, role, avatarUrl: initialAvatar }: ProfileSettingsFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [displayName, setDisplayName] = useState(name);
-  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(initialAvatar);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);

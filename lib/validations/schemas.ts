@@ -19,8 +19,14 @@ export const CreateChildSchema = z.object({
   ]),
   narrative: z.string().min(50, "Narrative must be at least 50 characters"),
   goal_monthly_ugx: z.number().int().positive("Monthly goal must be a positive number"),
-  profile_image_url: z.string().url("Invalid image URL"),
-  video_url: z.string().url("Invalid video URL").optional().nullable(),
+  profile_image_url: z.string().refine(
+    (v) => v.startsWith("/") || z.string().url().safeParse(v).success,
+    "Invalid image URL"
+  ),
+  video_url: z.string().refine(
+    (v) => v.startsWith("/") || z.string().url().safeParse(v).success,
+    "Invalid video URL"
+  ).optional().nullable(),
 });
 
 export const UpdateChildSchema = CreateChildSchema.partial().extend({

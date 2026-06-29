@@ -22,9 +22,10 @@ async function main() {
     ALTER TABLE public.admins ADD COLUMN IF NOT EXISTS invite_token_expires_at TIMESTAMPTZ;
     ALTER TABLE public.admins ADD COLUMN IF NOT EXISTS password_set BOOLEAN NOT NULL DEFAULT false;
     ALTER TABLE public.admins ALTER COLUMN password_hash DROP NOT NULL;
+    ALTER TABLE public.donations_ledger ADD COLUMN IF NOT EXISTS donor_name TEXT;
   `;
 
-  console.log("[apply-migrations] Running DDL on admins table...");
+  console.log("[apply-migrations] Running DDL on admins + donations_ledger tables...");
 
   try {
     const res = await fetch(`${url}/rest/v1/rpc/pg_query`, {
@@ -90,6 +91,7 @@ function manualInstructions() {
   console.log("  ALTER TABLE public.admins ADD COLUMN IF NOT EXISTS invite_token_expires_at TIMESTAMPTZ;");
   console.log("  ALTER TABLE public.admins ADD COLUMN IF NOT EXISTS password_set BOOLEAN NOT NULL DEFAULT false;");
   console.log("  ALTER TABLE public.admins ALTER COLUMN password_hash DROP NOT NULL;");
+  console.log("  ALTER TABLE public.donations_ledger ADD COLUMN IF NOT EXISTS donor_name TEXT;");
   console.log("");
   process.exit(1);
 }

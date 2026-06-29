@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getAdminSession } from "@/actions/auth";
+import { insforgeServer } from "@/lib/insforge-server";
 import { ProfileSettingsForm } from "./profile-form";
 
 export const metadata = { title: "Profile Settings — Open Hearts Foundation" };
@@ -7,6 +8,12 @@ export const metadata = { title: "Profile Settings — Open Hearts Foundation" }
 export default async function ProfileSettingsPage() {
   const session = await getAdminSession();
   if (!session) redirect("/admin/login");
+
+  const { data: admin } = await insforgeServer.database
+    .from("admins")
+    .select("avatar_url")
+    .eq("id", session.adminId)
+    .single();
 
   return (
     <div className="max-w-xl">
@@ -22,6 +29,7 @@ export default async function ProfileSettingsPage() {
         email={session.email}
         name={session.name}
         role={session.role}
+        avatarUrl={admin?.avatar_url}
       />
     </div>
   );

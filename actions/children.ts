@@ -150,6 +150,7 @@ export async function createChild(
   }]);
 
   await cacheInvalidate("children:active:*:*");
+  await cacheInvalidate("children:all:*:*");
   await cacheInvalidate(`child:${data.id}`);
 
   captureServerEvent("profile_created", session.adminId, {
@@ -199,6 +200,10 @@ export async function updateChild(
     childId: id,
     fieldsChanged,
   });
+
+  await cacheInvalidate("children:active:*:*");
+  await cacheInvalidate("children:all:*:*");
+  await cacheInvalidate(`child:${id}`);
 
   revalidatePath(`/admin/dashboard/children/${id}`);
   revalidatePath("/admin/dashboard/children");

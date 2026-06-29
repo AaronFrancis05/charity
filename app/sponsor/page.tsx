@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Search } from "lucide-react";
 import { getChildren } from "@/actions/children";
+import { insforgeServer } from "@/lib/insforge-server";
 import { Navbar } from "@/components/layout/Navbar";
 import { ChildCard } from "@/components/cards/ChildCard";
 import { Badge } from "@/components/ui/badge";
@@ -72,6 +73,23 @@ export default async function SponsorPage({
     searchQuery: searchQuery || undefined,
   });
 
+  // Aggregate funding data for all children
+  const { data: ledgerData } = await insforgeServer.database
+    .from("donations_ledger")
+    .select("child_id, amount_ugx, donor_email")
+    .eq("status", "settled");
+
+  const fundingMap = new Map<string, { raised: number; donors: Set<string> }>();
+  for (const row of ledgerData ?? []) {
+    let entry = fundingMap.get(row.child_id);
+    if (!entry) {
+      entry = { raised: 0, donors: new Set() };
+      fundingMap.set(row.child_id, entry);
+    }
+    entry.raised += row.amount_ugx ?? 0;
+    if (row.donor_email) entry.donors.add(row.donor_email);
+  }
+
   const sort = sp.sort ?? "urgent";
   const sorted = [...allChildren].sort((a, b) => {
     if (sort === "newest") {
@@ -80,11 +98,14 @@ export default async function SponsorPage({
     return 0;
   });
 
-  const enriched: ChildWithFunding[] = sorted.map((c) => ({
-    ...c,
-    raised_ugx: 0,
-    donor_count: 0,
-  }));
+  const enriched: ChildWithFunding[] = sorted.map((c) => {
+    const fund = fundingMap.get(c.id);
+    return {
+      ...c,
+      raised_ugx: fund?.raised ?? 0,
+      donor_count: fund?.donors.size ?? 0,
+    };
+  });
 
   const filtered =
     statusFilter === "all"
@@ -143,26 +164,26 @@ export default async function SponsorPage({
               name="q"
               defaultValue={searchQuery}
               placeholder="Search by name..."
-              className="w-full h-9 pl-9 pr-3 rounded-[--radius-md] border border-[--color-border] bg-[--color-surface] text-sm text-[--color-foreground] placeholder:text-[--color-text-muted] focus:border-[--color-brand-purple] focus:ring-1 focus:ring-[--color-brand-purple] outline-none transition-colors"
+                className="w-full h-9 pl-9 pr-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] text-sm text-[var(--color-foreground)] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-brand-purple)] focus:ring-1 focus:ring-[var(--color-brand-purple)] outline-none transition-colors"
             />
           </form>
 
           {/* Sort */}
           <div className="flex items-center gap-2 shrink-0 self-start">
             <span className="text-xs text-[--color-text-muted]">Sort:</span>
-            <Link
-              href={`/sponsor?${new URLSearchParams({ ...Object.fromEntries(params), sort: "urgent" }).toString()}`}
-              className={`text-sm ${sort === "urgent" ? "text-[--color-brand-purple] font-medium" : "text-[--color-text-secondary] hover:text-[--color-brand-purple]"}`}
-            >
-              Most urgent
-            </Link>
-            <span className="text-[--color-text-muted]">·</span>
-            <Link
-              href={`/sponsor?${new URLSearchParams({ ...Object.fromEntries(params), sort: "newest" }).toString()}`}
-              className={`text-sm ${sort === "newest" ? "text-[--color-brand-purple] font-medium" : "text-[--color-text-secondary] hover:text-[--color-brand-purple]"}`}
-            >
-              Newest
-            </Link>
+              <Link
+                href={`/sponsor?${new URLSearchParams({ ...Object.fromEntries(params), sort: "urgent" }).toString()}`}
+                className={`text-sm ${sort === "urgent" ? "text-[var(--color-brand-purple)] font-medium" : "text-[var(--color-text-secondary)] hover:text-[var(--color-brand-purple)]"}`}
+              >
+                Most urgent
+              </Link>
+              <span className="text-[var(--color-text-muted)]">·</span>
+              <Link
+                href={`/sponsor?${new URLSearchParams({ ...Object.fromEntries(params), sort: "newest" }).toString()}`}
+                className={`text-sm ${sort === "newest" ? "text-[var(--color-brand-purple)] font-medium" : "text-[var(--color-text-secondary)] hover:text-[var(--color-brand-purple)]"}`}
+              >
+                Newest
+              </Link>
           </div>
         </div>
 
@@ -175,10 +196,10 @@ export default async function SponsorPage({
                 key={chip.value}
                 href={filterUrl("/sponsor", params, "status", chip.value)}
                 className={[
-                  "px-4 py-1.5 rounded-[--radius-full] text-sm font-medium transition-colors border",
+                  "px-4 py-1.5 rounded-[var(--radius-full)] text-sm font-medium transition-colors border",
                   active
-                    ? "bg-[--color-brand-purple] text-white border-[--color-brand-purple]"
-                    : "bg-[--color-surface] text-[--color-text-secondary] border-[--color-border] hover:border-[--color-brand-purple] hover:text-[--color-brand-purple]",
+                    ? "bg-[var(--color-brand-purple)] text-[var(--color-text-on-brand)] border-[var(--color-brand-purple)]"
+                    : "bg-[var(--color-surface)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:border-[var(--color-brand-purple)] hover:text-[var(--color-brand-purple)]",
                 ].join(" ")}
               >
                 {chip.label}

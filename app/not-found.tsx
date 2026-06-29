@@ -4,7 +4,7 @@ import Image from "next/image";
 export default function NotFound() {
   return (
     <div className="min-h-screen bg-[var(--color-background)] flex items-center justify-center">
-      <div className="text-center">
+      <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-10 shadow-sm text-center max-w-sm">
         <Image
           src="/images/logo/openhearts_logo.png"
           alt="Open Hearts Foundation"

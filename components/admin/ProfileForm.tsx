@@ -56,6 +56,7 @@ export function ProfileForm({ child, mode }: ProfileFormProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
+  const [videoUploading, setVideoUploading] = useState(false);
   const [imageUrl, setImageUrl] = useState(child?.profile_image_url ?? "");
   const [videoUrl, setVideoUrl] = useState(child?.video_url ?? "");
   const [region, setRegion] = useState(child?.region ?? "");
@@ -67,12 +68,14 @@ export function ProfileForm({ child, mode }: ProfileFormProps) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setImageUploading(true);
+    if (type === "image") setImageUploading(true);
+    else setVideoUploading(true);
     const fd = new FormData();
     fd.append("file", file);
 
     const result = await uploadChildMedia(fd, type);
-    setImageUploading(false);
+    if (type === "image") setImageUploading(false);
+    else setVideoUploading(false);
 
     if (!result.success) {
       setError(result.error ?? "Upload failed");
@@ -241,14 +244,18 @@ export function ProfileForm({ child, mode }: ProfileFormProps) {
         )}
         <label className="inline-flex items-center gap-2 cursor-pointer rounded-[var(--radius-md)] border border-[var(--color-border)] px-4 py-2 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-muted)] transition-colors">
           <Upload className="w-4 h-4" />
-          <span>Choose video</span>
+          <span>{videoUploading ? "Uploading..." : "Choose video"}</span>
           <input
             type="file"
             accept="video/*"
             onChange={(e) => handleFileUpload(e, "video")}
             className="sr-only"
+            disabled={videoUploading}
           />
         </label>
+        {videoUploading && (
+          <p className="text-xs text-[var(--color-text-muted)] mt-1">Uploading...</p>
+        )}
         <p className="text-xs text-[var(--color-text-muted)] mt-1">
           16:9 recommended. No audio autoplay.
         </p>

@@ -8,3 +8,6 @@ ALTER TABLE public.admins
 -- Allow password_hash to be nullable for invited (not-yet-registered) admins
 ALTER TABLE public.admins
   ALTER COLUMN password_hash DROP NOT NULL;
+
+-- Backfill password_set for existing admins that already have a password_hash
+UPDATE public.admins SET password_set = true WHERE password_hash IS NOT NULL;

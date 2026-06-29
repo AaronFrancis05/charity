@@ -13,6 +13,11 @@ const images = [
   { url: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=800&q=80', dest: 'public/images/sections/mission-right.jpg' },
   { url: 'https://images.unsplash.com/photo-1473649085228-583485e6e4d7?auto=format&fit=crop&w=1200&q=80', dest: 'public/images/sections/hero-bg.jpg' },
   { url: 'https://images.unsplash.com/photo-1473649085228-583485e6e4d7?auto=format&fit=crop&w=1200&h=630&q=85', dest: 'public/og-image.jpg' },
+  // Missing child images
+  { url: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80', dest: 'public/images/children/ruth.jpg' },
+  { url: 'https://images.unsplash.com/photo-1546938576-620c05f4d157?auto=format&fit=crop&w=600&q=80', dest: 'public/images/children/john.jpg' },
+  { url: 'https://images.unsplash.com/photo-1545478092-40e1e37e77be?auto=format&fit=crop&w=600&q=80', dest: 'public/images/children/maria.jpg' },
+  { url: 'https://images.unsplash.com/photo-1551554772-1be7f3d3fc3d?auto=format&fit=crop&w=600&q=80', dest: 'public/images/children/samuel.jpg' },
 ];
 
 function fetchFile(url, dest) {
@@ -37,10 +42,10 @@ mkdirSync('public/images/logo', { recursive: true });
 
 // Copy provided logo file into the right location
 try {
-  copyFileSync('openhearts_logo.jpeg', 'public/images/logo/openhearts_logo.jpeg');
-  console.log('✓ public/images/logo/openhearts_logo.jpeg (copied from project root)');
+  copyFileSync('openhearts_logo.png', 'public/images/logo/openhearts_logo.png');
+  console.log('✓ public/images/logo/openhearts_logo.png (copied from project root)');
 } catch {
-  console.warn('⚠ Logo copy failed — manually place openhearts_logo.jpeg at public/images/logo/openhearts_logo.jpeg');
+  console.warn('⚠ Logo copy failed — manually place openhearts_logo.png at public/images/logo/openhearts_logo.png');
 }
 
 for (const { url, dest } of images) {

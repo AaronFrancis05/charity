@@ -30,6 +30,8 @@ function requireEnv(name) {
   return value;
 }
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
 async function main() {
   const insforgeUrl = requireEnv("NEXT_PUBLIC_INSFORGE_URL");
   const serviceKey = requireEnv("INSFORGE_SERVICE_KEY");
@@ -62,7 +64,7 @@ async function main() {
       continue;
     }
 
-    const newUrl = `/images/children/${filename}`;
+    const newUrl = `${APP_URL}/images/children/${filename}`;
 
     if (child.profile_image_url === newUrl) {
       skipped++;

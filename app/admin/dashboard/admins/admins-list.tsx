@@ -66,6 +66,13 @@ export function AdminsList({
 
   return (
     <div className="space-y-6">
+      {/* API error */}
+      {error && (
+        <div className="bg-[var(--color-error-bg)] border border-[var(--color-error)] rounded-[var(--radius-md)] px-4 py-3">
+          <p className="text-sm text-[var(--color-error)]">{error}</p>
+        </div>
+      )}
+
       {/* Invite form */}
       <Card className="p-5">
         <div className="flex items-center justify-between mb-4">

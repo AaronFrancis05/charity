@@ -4,7 +4,7 @@ Child sponsorship platform connecting vulnerable children in Uganda with sponsor
 
 ## Technology Stack
 
-Next.js 16, InsForge SDK, Flutterwave (REST), Resend, Cloudflare Turnstile, Upstash Redis, PostHog, Zod, Tailwind CSS v4, @base-ui/react, lucide-react.
+Next.js 15 (App Router), InsForge SDK (Supabase-compatible), Flutterwave (REST), Resend, Cloudflare Turnstile, Upstash Redis (REST), PostHog, Zod, Tailwind CSS v4, @base-ui/react, lucide-react.
 
 ## Getting Started
 

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
+import { Metadata } from "next";
 import { getChildren } from "@/actions/children";
+import { computeAge } from "@/lib/utils";
 import type { ChildProfile } from "@/actions/children";
 
 export const dynamic = "force-dynamic";
@@ -48,15 +50,6 @@ const FALLBACK_CHILDREN = [
   },
 ];
 
-function computeAge(birthDate: string) {
-  const today = new Date();
-  const birth = new Date(birthDate);
-  let age = today.getFullYear() - birth.getFullYear();
-  const m = today.getMonth() - birth.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
-  return age;
-}
-
 export default async function HomePage() {
   let featured: (ChildProfile & { initials: string; sponsoredYears: number; quote: string })[] = [];
 
@@ -94,8 +87,17 @@ export default async function HomePage() {
       {/* ── Navbar ── */}
       <nav className="bg-[var(--color-surface)] border-b border-[var(--color-border)] sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="font-semibold text-lg text-[var(--color-foreground)]">
-            Open Hearts Foundation
+          <Link href="/" className="flex items-center gap-2.5">
+            <Image
+              src="/images/logo/openhearts_logo.png"
+              alt="Open Hearts Foundation"
+              width={28}
+              height={28}
+              className="rounded-full object-cover"
+            />
+            <span className="font-semibold text-lg text-[var(--color-foreground)]">
+              Open Hearts Foundation
+            </span>
           </Link>
           <div className="flex items-center gap-8">
             <a href="#mission" className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-brand-purple)] transition-colors hidden sm:block">
@@ -127,6 +129,7 @@ export default async function HomePage() {
             src="/images/sections/hero-bg.jpg"
             alt=""
             fill
+            loading="eager"
             className="object-cover opacity-25"
             sizes="(max-width: 768px) 100vw, 1152px"
             aria-hidden="true"
@@ -243,7 +246,7 @@ export default async function HomePage() {
             >
               <div className="w-16 h-16 rounded-full overflow-hidden bg-[var(--color-surface-muted)] border-2 border-[var(--color-border)] mb-4">
                 <Image
-                  src={(child as any).image || child.profile_image_url || "/images/children/placeholder.jpg"}
+                  src={child.profile_image_url || "/images/children/placeholder.jpg"}
                   alt={child.name}
                   width={64}
                   height={64}

@@ -13,6 +13,20 @@ import { captureServerEvent } from "@/lib/posthog-server";
 import { sendAdminInvite } from "@/lib/resend";
 import crypto from "crypto";
 
+const SESSION_SECRET = process.env.INSFORGE_SERVICE_KEY || "dev-secret";
+
+function signSession(payload: string): string {
+  const hmac = crypto.createHmac("sha256", SESSION_SECRET);
+  hmac.update(payload);
+  return hmac.digest("base64url");
+}
+
+function verifySession(payload: string, signature: string): boolean {
+  const expected = signSession(payload);
+  if (signature.length !== expected.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+}
+
 export type AuthResult =
   | { success: true }
   | { success: false; error: string; rateLimited?: boolean };
@@ -107,7 +121,7 @@ export async function adminLogin(
     .update({ last_login_at: new Date().toISOString() })
     .eq("id", adminRecord.id);
 
-  // 8. Create session cookie (signed session stored server-side)
+  // 8. Create signed session cookie
   const sessionPayload = JSON.stringify({
     adminId: adminRecord.id,
     role: adminRecord.role,
@@ -116,8 +130,9 @@ export async function adminLogin(
     iat: Date.now(),
   });
 
-  // Encode as base64 for cookie (in production, sign with a secret)
-  const sessionValue = Buffer.from(sessionPayload).toString("base64");
+  const encoded = Buffer.from(sessionPayload).toString("base64");
+  const sig = signSession(encoded);
+  const sessionValue = `${encoded}.${sig}`;
 
   const cookieStore = await cookies();
   cookieStore.set("admin_session", sessionValue, {
@@ -162,11 +177,18 @@ export async function getAdminSession(): Promise<AdminSession | null> {
   const raw = cookieStore.get("admin_session")?.value;
   if (!raw) return null;
 
+  const dot = raw.indexOf(".");
+  if (dot === -1) return null;
+
+  const encoded = raw.slice(0, dot);
+  const sig = raw.slice(dot + 1);
+
+  if (!verifySession(encoded, sig)) return null;
+
   try {
-    const decoded = Buffer.from(raw, "base64").toString("utf-8");
+    const decoded = Buffer.from(encoded, "base64").toString("utf-8");
     const session = JSON.parse(decoded) as AdminSession;
 
-    // Check session age (8 hours)
     const age = Date.now() - session.iat;
     if (age > 8 * 60 * 60 * 1000) return null;
 
@@ -190,14 +212,15 @@ export async function updateAdminProfile(
 
     if (error) return { success: false, error: error.message };
 
-    // Update session cookie with new name
+    // Update signed session cookie with new name
     const newPayload = JSON.stringify({
       ...session,
       name: data.name,
       iat: Date.now(),
     });
+    const encoded = Buffer.from(newPayload).toString("base64");
     const cookieStore = await cookies();
-    cookieStore.set("admin_session", Buffer.from(newPayload).toString("base64"), {
+    cookieStore.set("admin_session", `${encoded}.${signSession(encoded)}`, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
@@ -257,7 +280,16 @@ export async function inviteAdmin(
 
     const emailResult = await sendAdminInvite(email, token, role);
     if (!emailResult.success) {
-      return { success: false, error: "Account created but invite email failed: " + emailResult.error };
+      // Roll back the admin insert to avoid orphan accounts
+      const inserted = await insforgeServer.database
+        .from("admins")
+        .select("id")
+        .eq("email", email)
+        .single();
+      if (inserted.data) {
+        await insforgeServer.database.from("admins").delete().eq("id", inserted.data.id);
+      }
+      return { success: false, error: "Invite email failed: " + emailResult.error };
     }
 
     return { success: true };
@@ -336,8 +368,9 @@ export async function acceptInvite(
       name: "",
       iat: Date.now(),
     });
+    const encoded = Buffer.from(sessionPayload).toString("base64");
     const cookieStore = await cookies();
-    cookieStore.set("admin_session", Buffer.from(sessionPayload).toString("base64"), {
+    cookieStore.set("admin_session", `${encoded}.${signSession(encoded)}`, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",

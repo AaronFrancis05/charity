@@ -8,8 +8,13 @@ function isConfigured(): boolean {
 }
 
 async function restCommand(command: string, ...args: string[]): Promise<unknown> {
-  const response = await fetch(`${UPSTASH_URL}/${command}/${args.join("/")}`, {
-    headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` },
+  const response = await fetch(`${UPSTASH_URL}/${command}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${UPSTASH_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(args),
   });
   if (!response.ok) return null;
   const json = await response.json() as { result: unknown };
@@ -39,13 +44,13 @@ export async function cacheGet<T>(
   const value = await fetchFn();
 
   try {
-    await fetch(`${UPSTASH_URL}/set/${key}/${ttlSeconds}`, {
+    await fetch(`${UPSTASH_URL}/set`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${UPSTASH_TOKEN}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(value),
+      body: JSON.stringify([key, JSON.stringify(value), "EX", String(ttlSeconds)]),
     });
   } catch {
     // Cache write failure — value is still returned
@@ -60,15 +65,24 @@ export async function cacheGet<T>(
 export async function cacheInvalidate(pattern: string): Promise<void> {
   if (!isConfigured()) return;
   try {
-    // Use SCAN to find matching keys, then DEL each
-    const keysResponse = await fetch(`${UPSTASH_URL}/keys/${pattern.replace(/\*/g, "%2A")}`, {
-      headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` },
+    const keysResponse = await fetch(`${UPSTASH_URL}/keys`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${UPSTASH_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify([pattern]),
     });
     if (!keysResponse.ok) return;
     const { result: keys } = await keysResponse.json() as { result: string[] };
     if (!keys || keys.length === 0) return;
-    await fetch(`${UPSTASH_URL}/del/${keys.join("/")}`, {
-      headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` },
+    await fetch(`${UPSTASH_URL}/del`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${UPSTASH_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(keys),
     });
   } catch {
     // Silent fail

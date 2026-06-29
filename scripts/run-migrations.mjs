@@ -9,6 +9,7 @@
 const MIGRATIONS = [
   "migrations/20260629120000_add-admin-profile.sql",
   "migrations/20260629140000_add-admin-invite.sql",
+  "migrations/20260629180000_add-donations-ledger-columns.sql",
 ];
 
 async function main() {

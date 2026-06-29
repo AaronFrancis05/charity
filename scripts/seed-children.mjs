@@ -17,6 +17,8 @@ function requireEnv(name) {
   return value;
 }
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
 function toDate(age) {
   const year = new Date().getFullYear() - age;
   const month = String(Math.floor(Math.random() * 12) + 1).padStart(2, "0");
@@ -166,7 +168,7 @@ async function main() {
       region: child.region,
       narrative: child.narrative,
       goal_monthly_ugx: child.goal_monthly_ugx,
-      profile_image_url: `/images/children/${filename}`,
+      profile_image_url: `${APP_URL}/images/children/${filename}`,
       video_url: null,
       is_active: true,
       created_by: admin.id,

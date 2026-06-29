@@ -15,7 +15,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const child = await getChildById(id);
-  if (!child) {
+  if (!child || !child.is_active) {
     return { title: "Child not found — Open Hearts Foundation" };
   }
   return {
