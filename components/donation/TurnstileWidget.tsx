@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Script from "next/script";
 
 interface TurnstileWidgetProps {
   onVerify: (token: string) => void;
@@ -29,6 +30,7 @@ declare global {
 export function TurnstileWidget({ onVerify, onExpire, onError }: TurnstileWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | undefined>(undefined);
+  const loadedRef = useRef(false);
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!;
 
   const onVerifyRef = useRef(onVerify);
@@ -38,39 +40,34 @@ export function TurnstileWidget({ onVerify, onExpire, onError }: TurnstileWidget
   onExpireRef.current = onExpire;
   onErrorRef.current = onError;
 
+  function renderWidget() {
+    if (!containerRef.current || !window.turnstile || loadedRef.current) return;
+    loadedRef.current = true;
+    try {
+      widgetIdRef.current = window.turnstile.render(containerRef.current, {
+        sitekey: siteKey,
+        callback: (token: string) => onVerifyRef.current(token),
+        "expired-callback": () => onExpireRef.current?.(),
+      });
+    } catch {
+      onErrorRef.current?.("Failed to initialise security check.");
+    }
+  }
+
   useEffect(() => {
-    if (!containerRef.current) return;
     if (!siteKey) {
       onErrorRef.current?.("Turnstile site key is not configured");
       return;
     }
 
-    const timeout = setTimeout(() => {
-      clearInterval(interval);
-      onErrorRef.current?.("Security check failed to load. Please refresh the page.");
-    }, 10000);
-
-    const interval = setInterval(() => {
-      if (window.turnstile && containerRef.current) {
-        clearInterval(interval);
-        clearTimeout(timeout);
-        try {
-          widgetIdRef.current = window.turnstile.render(containerRef.current, {
-            sitekey: siteKey,
-            callback: (token: string) => onVerifyRef.current(token),
-            "expired-callback": () => onExpireRef.current?.(),
-          });
-        } catch {
-          onErrorRef.current?.("Failed to initialise security check.");
-        }
-      }
-    }, 200);
+    if (window.turnstile) {
+      renderWidget();
+    }
 
     return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
       if (widgetIdRef.current && window.turnstile) {
         window.turnstile.remove(widgetIdRef.current);
+        loadedRef.current = false;
       }
     };
   }, [siteKey]);
@@ -84,9 +81,14 @@ export function TurnstileWidget({ onVerify, onExpire, onError }: TurnstileWidget
   }
 
   return (
-    <div
-      ref={containerRef}
-      className="min-h-[65px]"
-    />
+    <>
+      <Script
+        src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+        strategy="afterInteractive"
+        onLoad={renderWidget}
+        onError={() => onErrorRef.current?.("Failed to load security check. Please refresh.")}
+      />
+      <div ref={containerRef} className="min-h-[65px]" />
+    </>
   );
 }

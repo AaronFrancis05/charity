@@ -54,10 +54,6 @@ export default function RootLayout({
     <html lang="en" data-scroll-behavior="smooth" className={cn("font-sans", geist.variable)}>
       <body>
         <PostHogProvider>{children}</PostHogProvider>
-        <Script
-          src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
-          strategy="beforeInteractive"
-        />
       </body>
     </html>
   );
