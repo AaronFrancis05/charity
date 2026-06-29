@@ -26,18 +26,18 @@ export const metadata: Metadata = {
     locale: "en_UG",
     images: [
       {
-        url: "/og-image.jpg",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "Open Hearts Foundation — children reaching out with joy and hope",
-        type: "image/jpeg",
+        type: "image/png",
       },
       {
-        url: "/og-image-square.jpg",
+        url: "/og-image.png",
         width: 1200,
         height: 1200,
         alt: "Open Hearts Foundation — Giving with Kindness and Love",
-        type: "image/jpeg",
+        type: "image/png",
       },
     ],
   },
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     description:
       "Every child in Uganda deserves a future. Walk alongside a child today.",
     images: {
-      url: "/og-image.jpg",
+      url: "/og-image.png",
       alt: "Open Hearts Foundation — children reaching out with joy and hope",
     },
   },

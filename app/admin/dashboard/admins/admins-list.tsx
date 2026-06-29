@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { inviteAdmin } from "@/actions/auth";
+import { inviteAdmin } from "@/actions/admins";
 import { Card } from "@/components/cards/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { UserPlus, Mail, Shield } from "lucide-react";
+import { TurnstileWidget } from "@/components/donation/TurnstileWidget";
 
 interface AdminRecord {
   id: string;
@@ -42,21 +43,29 @@ export function AdminsList({
   const [formSuccess, setFormSuccess] = useState(false);
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("content_admin");
+  const [turnstileToken, setTurnstileToken] = useState("");
 
   function handleInvite(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setFormError(null);
     setFormSuccess(false);
 
+    if (!turnstileToken) {
+      setFormError("Please complete the bot verification.");
+      return;
+    }
+
     const fd = new FormData(e.currentTarget);
+    fd.append("cf-turnstile-response", turnstileToken);
 
     startTransition(async () => {
-      const result = await inviteAdmin(fd);
+      const result = await inviteAdmin(null, fd);
       if (result.success) {
         setFormSuccess(true);
         setEmail("");
         setRole("content_admin");
         setShowForm(false);
+        setTurnstileToken("");
         router.refresh();
       } else {
         setFormError(result.error ?? "Failed to invite");
@@ -133,8 +142,11 @@ export function AdminsList({
                   </SelectContent>
                 </Select>
               </div>
+              <div className="sm:col-span-3">
+                <TurnstileWidget onVerify={setTurnstileToken} />
+              </div>
               <div className="flex items-end">
-                <Button type="submit" variant="default" loading={isPending} className="w-full">
+                <Button type="submit" variant="default" loading={isPending} className="w-full" disabled={!turnstileToken}>
                   <Mail className="w-4 h-4" />
                   Send invite
                 </Button>

@@ -65,55 +65,36 @@ The Open Hearts Foundation team`;
   }
 }
 
-export async function sendAdminInvite(
-  email: string,
-  token: string,
-  role: string
-): Promise<{ success: boolean; error?: string }> {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const inviteLink = `${appUrl}/admin/invite?token=${token}`;
 
-  const text = `You have been invited to join the Open Hearts Foundation admin panel.
 
-Role: ${role === "super_admin" ? "Super Admin" : "Content Admin"}
-
-Click the link below to set your password and activate your account:
-${inviteLink}
-
-This invitation expires in 48 hours.
-
-If you did not expect this invitation, you can ignore this email.
-`;
-
+export async function sendAdminInvitationEmail(email: string, invitationLink: string): Promise<void> {
+  const text = `You have been invited to join the Open Hearts Foundation admin panel. Click the link to accept: ${invitationLink}`;
   const html = `
     <div style="font-family: sans-serif; color: #101828; max-width: 480px; margin: 0 auto;">
-      <h2 style="color: #C0006A;">You're invited</h2>
+      <h2 style="color: #7c3aed;">You're invited</h2>
       <p>You have been invited to join the <strong>Open Hearts Foundation</strong> admin panel.</p>
-      <p style="font-size: 14px; color: #6a7282;">Role: ${role === "super_admin" ? "Super Admin" : "Content Admin"}</p>
-      <a href="${inviteLink}" style="display: inline-block; background: #C0006A; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; margin: 20px 0;">
-        Set your password
+      <a href="${invitationLink}" style="display: inline-block; background: #7c3aed; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; margin: 20px 0;">
+        Accept Invitation
       </a>
-      <p style="font-size: 13px; color: #6a7282;">This invitation expires in 48 hours. If you did not expect this, you can ignore this email.</p>
+      <p style="font-size: 13px; color: #6a7282;">This link will expire in 24 hours.</p>
     </div>
   `;
 
   try {
     const { error } = await resend.emails.send({
-      from: "Open Hearts Foundation <admin@openheartsfoundation.org>",
+      from: "Open Hearts Foundation <noreply@openheartsfoundation.org>",
       to: email,
-      subject: "You're invited to manage Open Hearts Foundation",
+      subject: "Invitation to Open Hearts Foundation Admin Panel",
       html,
       text,
     });
 
     if (error) {
-      console.error("[lib/resend/sendAdminInvite]", error);
-      return { success: false, error: error.message };
+      console.error("[lib/resend/sendAdminInvitationEmail]", error);
+      throw new Error("Failed to send invitation email.");
     }
-
-    return { success: true };
   } catch (err) {
-    console.error("[lib/resend/sendAdminInvite]", err);
-    return { success: false, error: "Failed to send invite email" };
+    console.error("[lib/resend/sendAdminInvitationEmail] Unexpected error:", err);
+    throw new Error("An unexpected error occurred while sending the email.");
   }
 }
