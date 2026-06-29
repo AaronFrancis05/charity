@@ -110,35 +110,39 @@ export default async function DashboardPage() {
       </h2>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {STAT_CARDS.map((s) => (
-          <Card key={s.label}>
-            <p className="text-sm text-[var(--color-text-secondary)] mb-1">{s.label}</p>
-            <p className="text-3xl font-bold text-[var(--color-foreground)]">{s.value}</p>
+          <Card key={s.label} className="p-4 sm:p-6 text-center sm:text-left">
+            <p className="text-xs sm:text-sm text-[var(--color-text-secondary)] mb-1">{s.label}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-[var(--color-foreground)]">{s.value}</p>
           </Card>
         ))}
       </div>
 
       {/* Charts row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-        <Card className="lg:col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <Card className="lg:col-span-2 p-5 sm:p-6">
           <CardHeader title="Monthly donation volume" />
-          <MonthlyChart ledger={stats.ledger} />
-          <div className="flex gap-4 mt-4">
+          <div className="overflow-x-auto pb-2 -mx-2 px-2">
+            <div className="min-w-[300px]">
+              <MonthlyChart ledger={stats.ledger} />
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-4 mt-6">
             {[
               { color: "#7c3aed", label: "Flutterwave" },
               { color: "#b45309", label: "MTN MoMo" },
               { color: "#dc2626", label: "Airtel Money" },
             ].map((l) => (
-              <div key={l.label} className="flex items-center gap-1.5">
+              <div key={l.label} className="flex items-center gap-1.5 flex-shrink-0">
                 <span className="w-3 h-3 rounded-sm" style={{ background: l.color }} />
-                <span className="text-xs text-[var(--color-text-secondary)]">{l.label}</span>
+                <span className="text-xs font-medium text-[var(--color-text-secondary)]">{l.label}</span>
               </div>
             ))}
           </div>
         </Card>
 
-        <Card>
+        <Card className="p-5 sm:p-6">
           <CardHeader
             title="Funding tier breakdown"
             subtitle="Share of goal raised, per child"
@@ -154,8 +158,9 @@ export default async function DashboardPage() {
             Recent donation activity
           </h3>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto -mx-0">
+          <div className="min-w-[640px]">
+            <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[var(--color-border)]">
                 {["DATE", "CHILD", "PROVIDER", "AMOUNT", "STATUS"].map((h) => (
@@ -216,6 +221,7 @@ export default async function DashboardPage() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       </Card>
     </div>

@@ -87,13 +87,14 @@ export function AdminsList({
 
       {/* Invite form */}
       <Card className="p-5">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
           <h2 className="text-base font-semibold text-[var(--color-foreground)]">
             Invite new admin
           </h2>
           <Button
             type="button"
             variant="default"
+            className="w-full sm:w-auto min-h-[44px]"
             onClick={() => setShowForm(!showForm)}
           >
             <UserPlus className="w-4 h-4" />
@@ -117,7 +118,7 @@ export function AdminsList({
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <div className="sm:col-span-1">
                 <label className="text-sm font-medium text-[var(--color-foreground)] block mb-1.5">
                   Email address
@@ -129,6 +130,7 @@ export function AdminsList({
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@example.org"
                   required
+                  className="text-base min-h-[44px]"
                 />
               </div>
               <div>
@@ -136,7 +138,7 @@ export function AdminsList({
                   Role
                 </label>
                 <Select name="role" value={role} onValueChange={(v) => setRole(v ?? "content_admin")} required>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full h-11 text-base">
                     <SelectValue placeholder="Select role..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -145,7 +147,7 @@ export function AdminsList({
                   </SelectContent>
                 </Select>
               </div>
-              <div className="sm:col-span-3">
+              <div className="sm:col-span-2 lg:col-span-3">
                 <TurnstileWidget
                   ref={turnstileRef}
                   onVerify={setTurnstileToken}
@@ -156,7 +158,7 @@ export function AdminsList({
                 />
               </div>
               <div className="flex items-end">
-                <Button type="submit" variant="default" loading={isPending} className="w-full" disabled={!turnstileToken}>
+                <Button type="submit" variant="default" loading={isPending} className="w-full min-h-[44px] text-base" disabled={!turnstileToken}>
                   <Mail className="w-4 h-4" />
                   Send invite
                 </Button>
@@ -167,9 +169,10 @@ export function AdminsList({
       </Card>
 
       {/* Admins table */}
-      <Card className="overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+      <Card className="overflow-hidden" padding="none">
+        <div className="overflow-x-auto -mx-0">
+          <div className="min-w-[640px]">
+            <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-muted)]">
                 <th className="text-left px-4 py-3 font-medium text-[var(--color-text-secondary)]">Name</th>
@@ -226,12 +229,14 @@ export function AdminsList({
                       ? new Date(admin.last_login_at).toLocaleDateString()
                       : "Never"}
                   </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </Card>
     </div>
+
   );
 }

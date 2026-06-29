@@ -13,16 +13,20 @@ export default async function ChildrenListPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-[var(--color-foreground)]">Children</h2>
-        <Link href="/admin/dashboard/children/new">
-          <Button variant="default">+ New profile</Button>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold text-[var(--color-foreground)]">Children</h2>
+          <p className="text-sm text-[var(--color-text-muted)] mt-0.5">Manage child profiles</p>
+        </div>
+        <Link href="/admin/dashboard/children/new" className="w-full sm:w-auto">
+          <Button variant="default" className="w-full min-h-[44px]">+ New profile</Button>
         </Link>
       </div>
 
       <Card padding="none">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto -mx-0">
+          <div className="min-w-[640px]">
+            <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[var(--color-border)]">
                 {["NAME", "REGION", "FUNDING", "STATUS", "ACTIONS"].map((h) => (
@@ -81,13 +85,15 @@ export default async function ChildrenListPage() {
                         </Link>
                       </td>
                     </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </Card>
     </div>
+
   );
 }

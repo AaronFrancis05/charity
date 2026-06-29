@@ -77,7 +77,7 @@ export function InviteAdminForm() {
             type="email"
             placeholder="admin@example.com"
             required
-            className="mt-1"
+            className="mt-1 text-base min-h-[44px]"
           />
         </div>
         <div>
@@ -85,7 +85,7 @@ export function InviteAdminForm() {
             Role
           </label>
           <Select name="role" required>
-            <SelectTrigger id="role" className="mt-1">
+            <SelectTrigger id="role" className="mt-1 w-full h-11 text-base">
               <SelectValue placeholder="Select a role" />
             </SelectTrigger>
             <SelectContent>
@@ -102,7 +102,7 @@ export function InviteAdminForm() {
             turnstileRef.current?.reset();
           }}
         />
-        <Button type="submit" disabled={!turnstileToken}>
+        <Button type="submit" disabled={!turnstileToken} className="w-full sm:w-auto min-h-[44px] text-base">
           Send Invitation
         </Button>
       </form>

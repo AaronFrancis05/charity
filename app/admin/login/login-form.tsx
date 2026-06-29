@@ -56,60 +56,66 @@ export function AdminLoginForm({ alreadyAuthenticated }: AdminLoginFormProps) {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5">
         {error && (
           <div className="bg-[var(--color-error-bg)] border border-[var(--color-error)] rounded-[var(--radius-md)] px-3 py-2.5">
             <p className="text-sm text-[var(--color-error)]">{error}</p>
           </div>
         )}
 
-        <label className="block">
-          <span className="block text-sm font-medium text-[var(--color-foreground)] mb-1">
-            Email address
-          </span>
-          <Input
-            name="email"
-            type="email"
-            autoComplete="email"
-            placeholder="admin@openheartsfoundation.org"
-            required
-          />
-        </label>
+        <div className="space-y-4">
+          <label className="block">
+            <span className="block text-sm font-medium text-[var(--color-foreground)] mb-1">
+              Email address
+            </span>
+            <Input
+              name="email"
+              type="email"
+              autoComplete="email"
+              placeholder="admin@openheartsfoundation.org"
+              required
+              className="text-base min-h-[44px]"
+            />
+          </label>
 
-        <label className="block">
-          <span className="block text-sm font-medium text-[var(--color-foreground)] mb-1">
-            Password
-          </span>
-          <Input
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            placeholder="••••••••"
-            required
-            minLength={8}
-          />
-        </label>
+          <label className="block">
+            <span className="block text-sm font-medium text-[var(--color-foreground)] mb-1">
+              Password
+            </span>
+            <Input
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              placeholder="••••••••"
+              required
+              minLength={8}
+              className="text-base min-h-[44px]"
+            />
+          </label>
+        </div>
 
-        <div>
-          <TurnstileWidget
-            ref={turnstileRef}
-            onVerify={(token) => setTurnstileToken(token)}
-            onExpire={() => {
-              setTurnstileToken("");
-              turnstileRef.current?.reset();
-            }}
-            onError={(err) => {
-              setError(err);
-              setTurnstileToken("");
-            }}
-          />
+        <div className="flex justify-center overflow-hidden my-2">
+          <div className="w-full max-w-[300px]">
+            <TurnstileWidget
+              ref={turnstileRef}
+              onVerify={(token) => setTurnstileToken(token)}
+              onExpire={() => {
+                setTurnstileToken("");
+                turnstileRef.current?.reset();
+              }}
+              onError={(err) => {
+                setError(err);
+                setTurnstileToken("");
+              }}
+            />
+          </div>
         </div>
 
         <Button
           type="submit"
           variant="default"
           loading={isPending}
-          className="w-full"
+          className="w-full min-h-[48px] text-base"
           disabled={!turnstileToken || isPending}
         >
           Sign in

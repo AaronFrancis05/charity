@@ -25,9 +25,12 @@ export default async function LedgerPage() {
 
   return (
     <div>
-      <h2 className="text-xl font-bold text-[var(--color-foreground)] mb-6">
-        Financial audit ledger
-      </h2>
+      <div className="mb-6">
+        <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--color-foreground)]">
+          Financial audit ledger
+        </h2>
+        <p className="text-sm text-[var(--color-text-muted)] mt-0.5">Track all incoming donations</p>
+      </div>
 
       {/* Summary */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -57,8 +60,9 @@ export default async function LedgerPage() {
             {records.length} records
           </span>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto -mx-0">
+          <div className="min-w-[768px]">
+            <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[var(--color-border)]">
                 {["DATE", "CHILD", "PROVIDER", "AMOUNT", "STATUS", "RECEIPT"].map((h) => (
@@ -113,13 +117,15 @@ export default async function LedgerPage() {
                         {row.receipt_reference ?? "—"}
                       </td>
                     </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </Card>
     </div>
+
   );
 }
