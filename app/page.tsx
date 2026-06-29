@@ -126,15 +126,15 @@ export default async function HomePage() {
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-20 sm:py-24">
         <div className="relative bg-[var(--color-brand-purple-light)] rounded-[var(--radius-xl)] px-6 sm:px-12 py-16 sm:py-20 text-center shadow-[var(--shadow-card)] overflow-hidden">
           <Image
-            src="/images/sections/hero-bg.jpg"
-            alt=""
+            src="/images/sections/children-hero.jpg"
+            alt="Open Hearts Foundation children — joyful and full of hope"
             fill
-            loading="eager"
-            className="object-cover opacity-25"
-            sizes="(max-width: 768px) 100vw, 1152px"
-            aria-hidden="true"
+            priority
+            className="object-cover object-top"
+            sizes="100vw"
+            quality={85}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-brand-purple-light)] via-transparent to-[var(--color-brand-purple-light)] opacity-60" />
+          <div className="absolute inset-0 bg-[var(--color-brand-purple-light)]/80" aria-hidden="true" />
           <div className="relative z-10">
           <div className="flex items-center justify-center gap-4 mb-6">
             <span className="text-[13px] font-bold tracking-[0.15em] text-[var(--color-brand-purple)] uppercase">
@@ -216,11 +216,12 @@ export default async function HomePage() {
           </div>
           <div className="relative rounded-[var(--radius-xl)] overflow-hidden w-full aspect-[4/3]">
             <Image
-              src="/images/sections/mission-right.jpg"
-              alt="Open Hearts Foundation mentors working alongside children in Uganda"
+              src="/images/sections/children-card.jpg"
+              alt="Open Hearts Foundation children in Uganda — community and hope"
               fill
-              className="object-cover"
+              className="object-cover object-center"
               sizes="(max-width: 768px) 100vw, 50vw"
+              quality={85}
             />
             <div className="absolute bottom-4 right-4 bg-[var(--color-surface)] rounded-[var(--radius-lg)] shadow-[var(--shadow-card)] px-4 py-3">
               <span className="text-sm font-semibold text-[var(--color-foreground)]">5 communities</span>

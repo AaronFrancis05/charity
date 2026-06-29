@@ -3,6 +3,21 @@
 ## Logo
 - `logo/openhearts_logo.png` — Open Hearts Foundation official logo. All rights reserved.
 
+## Client-Provided Photography
+
+| File | Source | Rights |
+|---|---|---|
+| og-image.jpg | Open Hearts Foundation | All rights reserved — client owns |
+| og-image.png | Derived from og-image.jpg | Same as above |
+| og-image-square.jpg | Derived from og-image.jpg | Same as above |
+| children-hero.jpg | Derived from og-image.jpg | Same as above |
+| children-card.jpg | Derived from og-image.jpg | Same as above |
+| children-portrait.jpg | Derived from og-image.jpg | Same as above |
+
+Note: These are real photographs of real children. Do NOT use them outside the
+Open Hearts Foundation project. Do NOT commit them to a public repository without
+explicit client permission.
+
 ## Unsplash Photos
 All photos sourced from Unsplash (https://unsplash.com) under the Unsplash License.
 Free for commercial and non-commercial use. No attribution required.
