@@ -17,7 +17,7 @@ const PROVIDERS: { value: Provider; label: string; subtitle: string; badge: stri
 
 export function PaymentSelector({ selected, onSelect }: PaymentSelectorProps) {
   return (
-    <div className="grid grid-cols-1 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
       {PROVIDERS.map((p) => {
         const isSelected = selected === p.value;
         return (

@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Settings, Users } from "lucide-react";
+import { Settings, Users, Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { adminLogout } from "@/actions/auth";
 
@@ -64,16 +65,16 @@ function Avatar({ name, email }: { name: string; email: string }) {
   );
 }
 
-export function AdminSidebar({ role, email, name }: AdminSidebarProps) {
+function SidebarContent({ role, email, name, onNavClick }: AdminSidebarProps & { onNavClick?: () => void }) {
   const pathname = usePathname();
 
   const isActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname.startsWith(href);
 
   return (
-    <aside className="w-64 shrink-0 bg-[var(--color-surface)] border-r border-[var(--color-border)] min-h-screen flex flex-col">
+    <>
       {/* Brand */}
-      <Link href="/admin/dashboard" className="block p-6 border-b border-[var(--color-border)] hover:opacity-80 transition-opacity">
+      <Link href="/admin/dashboard" className="block p-6 border-b border-[var(--color-border)] hover:opacity-80 transition-opacity" onClick={onNavClick}>
         <div className="flex items-center gap-3">
           <Image
             src="/images/logo/openhearts_logo.png"
@@ -98,6 +99,7 @@ export function AdminSidebar({ role, email, name }: AdminSidebarProps) {
             <Link
               key={item.href}
               href={item.href}
+              onClick={onNavClick}
               className={[
                 "flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius-md)] text-sm transition-colors",
                 active
@@ -117,6 +119,7 @@ export function AdminSidebar({ role, email, name }: AdminSidebarProps) {
         <Link
           href="/admin/dashboard/profile"
           className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
+          onClick={onNavClick}
         >
           <Avatar name={name} email={email} />
           <div className="min-w-0">
@@ -138,6 +141,55 @@ export function AdminSidebar({ role, email, name }: AdminSidebarProps) {
           </button>
         </form>
       </div>
-    </aside>
+    </>
+  );
+}
+
+export function AdminSidebar({ role, email, name }: AdminSidebarProps) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      {/* Mobile hamburger */}
+      <button
+        onClick={() => setOpen(true)}
+        className="lg:hidden fixed top-3 left-3 z-50 p-2 rounded-[var(--radius-md)] bg-[var(--color-surface)] border border-[var(--color-border)] shadow-sm text-[var(--color-text-secondary)] hover:text-[var(--color-foreground)]"
+        aria-label="Open sidebar"
+      >
+        <Menu className="w-5 h-5" />
+      </button>
+
+      {/* Mobile overlay */}
+      {open && (
+        <div
+          className="lg:hidden fixed inset-0 z-40 bg-black/40"
+          onClick={() => setOpen(false)}
+        />
+      )}
+
+      {/* Mobile sidebar (slide-in) */}
+      <aside
+        className={[
+          "lg:hidden fixed top-0 left-0 z-50 w-64 bg-[var(--color-surface)] border-r border-[var(--color-border)] min-h-screen flex flex-col transition-transform duration-200",
+          open ? "translate-x-0" : "-translate-x-full",
+        ].join(" ")}
+      >
+        <div className="flex items-center justify-end p-3 border-b border-[var(--color-border)]">
+          <button
+            onClick={() => setOpen(false)}
+            className="p-1.5 rounded-[var(--radius-md)] text-[var(--color-text-secondary)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-muted)]"
+            aria-label="Close sidebar"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <SidebarContent role={role} email={email} name={name} onNavClick={() => setOpen(false)} />
+      </aside>
+
+      {/* Desktop sidebar (always visible) */}
+      <aside className="hidden lg:flex w-64 shrink-0 bg-[var(--color-surface)] border-r border-[var(--color-border)] min-h-screen flex-col">
+        <SidebarContent role={role} email={email} name={name} />
+      </aside>
+    </>
   );
 }

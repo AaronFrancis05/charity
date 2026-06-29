@@ -29,7 +29,7 @@ export default async function AdminDashboardLayout({
 
       <main className="flex-1 overflow-auto">
         {/* Top bar */}
-        <header className="bg-[var(--color-surface)] border-b border-[var(--color-border)] px-6 py-3 flex items-center justify-between">
+        <header className="bg-[var(--color-surface)] border-b border-[var(--color-border)] pl-12 lg:pl-6 pr-6 py-3 flex items-center justify-between">
           <Link
             href="/admin/dashboard/profile"
             className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
