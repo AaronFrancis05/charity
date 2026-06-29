@@ -22,6 +22,7 @@ export default function DonatePage({ params }: { params: Promise<{ id: string }>
   const [donorEmail, setDonorEmail] = useState("");
   const [provider, setProvider] = useState<Provider | null>(null);
   const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileError, setTurnstileError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -172,9 +173,13 @@ export default function DonatePage({ params }: { params: Promise<{ id: string }>
               <p className="text-[14px] font-medium text-[var(--color-foreground)] mb-3">
                 Security check
               </p>
+              {turnstileError && (
+                <p className="text-xs text-[var(--color-error)] mb-2">{turnstileError}</p>
+              )}
               <TurnstileWidget
-                onVerify={(token) => setTurnstileToken(token)}
+                onVerify={(token) => { setTurnstileToken(token); setTurnstileError(null); }}
                 onExpire={() => setTurnstileToken("")}
+                onError={(msg) => setTurnstileError(msg)}
               />
             </div>
 
