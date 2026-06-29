@@ -145,7 +145,7 @@ export function ProfileSettingsForm({ adminId, email, name, role, avatarUrl: ini
       </label>
 
       <div className="pt-2">
-        <Button type="submit" variant="default" loading={isPending}>
+        <Button type="submit" variant="default" loading={isPending} className="w-full sm:w-auto min-h-[44px]">
           <Save className="w-4 h-4" />
           Save changes
         </Button>

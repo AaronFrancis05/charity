@@ -10,7 +10,7 @@ export default async function AdminLoginPage() {
   const alreadyAuthenticated = headersList.get("x-already-authenticated") === "1";
 
   return (
-    <div className="min-h-screen bg-[var(--color-background)] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[var(--color-background)] flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-sm">
         {/* Brand */}
         <div className="text-center mb-8">
@@ -19,14 +19,14 @@ export default async function AdminLoginPage() {
             alt="Open Hearts Foundation"
             width={64}
             height={64}
-            className="rounded-full object-cover mx-auto mb-3"
+            className="rounded-full object-cover mx-auto mb-3 sm:w-20 sm:h-20"
             priority
           />
-          <h1 className="text-xl font-bold text-[var(--color-foreground)]">Open Hearts Foundation</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-[var(--color-foreground)]">Open Hearts Foundation</h1>
           <p className="text-sm text-[var(--color-text-secondary)] mt-1">Admin panel</p>
         </div>
 
-        <div className="bg-[var(--color-surface)] rounded-[var(--radius-xl)] border border-[var(--color-border)] shadow-[var(--shadow-card)] p-6">
+        <div className="bg-[var(--color-surface)] rounded-[var(--radius-xl)] border border-[var(--color-border)] shadow-[var(--shadow-card)] p-6 sm:p-8">
           <h2 className="text-base font-semibold text-[var(--color-foreground)] mb-5">
             Sign in to continue
           </h2>

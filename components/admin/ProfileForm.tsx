@@ -261,13 +261,14 @@ export function ProfileForm({ child, mode }: ProfileFormProps) {
         </p>
       </div>
 
-      <div className="flex gap-3 pt-2">
-        <Button type="submit" variant="default" loading={isPending}>
+      <div className="flex flex-col sm:flex-row gap-3 pt-2">
+        <Button type="submit" variant="default" loading={isPending} className="w-full sm:w-auto min-h-[44px]">
           {mode === "create" ? "Create profile" : "Save changes"}
         </Button>
         <Button
           type="button"
           variant="secondary"
+          className="w-full sm:w-auto min-h-[44px]"
           onClick={() => router.push("/admin/dashboard/children")}
         >
           Cancel

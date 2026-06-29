@@ -34,22 +34,22 @@ export default async function AdminChildDetailPage({
         <span className="text-[var(--color-foreground)]">{child.name}</span>
       </div>
 
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div className="flex items-center gap-4">
-          <h2 className="text-xl font-bold text-[var(--color-foreground)]">{child.name}</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-[var(--color-foreground)]">{child.name}</h2>
           <Badge variant={child.is_active ? "success" : "default"}>
             {child.is_active ? "Active" : "Inactive"}
           </Badge>
         </div>
         <Link
           href={`/admin/dashboard/children/${child.id}/edit`}
-          className="rounded-[var(--radius-md)] bg-[var(--color-brand-purple)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-brand-purple-dark)]"
+          className="w-full sm:w-auto rounded-[var(--radius-md)] bg-[var(--color-brand-purple)] px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-[var(--color-brand-purple-dark)] min-h-[44px] flex items-center justify-center"
         >
           Edit profile
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <Card>
           <p className="text-sm text-[var(--color-text-secondary)] mb-1">Monthly goal</p>
           <p className="text-xl font-bold text-[var(--color-foreground)]">
@@ -145,8 +145,9 @@ export default async function AdminChildDetailPage({
             Donation history
           </h3>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto -mx-0">
+          <div className="min-w-[600px]">
+            <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[var(--color-border)]">
                 {["DATE", "PROVIDER", "AMOUNT", "STATUS", "RECEIPT"].map((h) => (
@@ -196,13 +197,15 @@ export default async function AdminChildDetailPage({
                         {row.receipt_reference ?? "—"}
                       </td>
                     </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </Card>
     </div>
+
   );
 }

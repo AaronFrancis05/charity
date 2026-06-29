@@ -72,9 +72,21 @@ function SidebarContent({ role, email, name, onNavClick }: AdminSidebarProps & {
     exact ? pathname === href : pathname.startsWith(href);
 
   return (
-    <>
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* Close button — mobile only */}
+      <div className="lg:hidden flex items-center justify-between p-4 border-b border-[var(--color-border)] flex-shrink-0">
+        <span className="font-semibold text-[var(--color-brand-purple)] text-sm">Navigation</span>
+        <button
+          onClick={onNavClick}
+          className="p-1.5 rounded-[var(--radius-md)] text-[var(--color-text-secondary)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-muted)]"
+          aria-label="Close navigation menu"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+
       {/* Brand */}
-      <Link href="/admin/dashboard" className="block p-6 border-b border-[var(--color-border)] hover:opacity-80 transition-opacity" onClick={onNavClick}>
+      <Link href="/admin/dashboard" className="flex-shrink-0 block p-6 border-b border-[var(--color-border)] hover:opacity-80 transition-opacity" onClick={onNavClick}>
         <div className="flex items-center gap-3">
           <Image
             src="/images/logo/openhearts_logo.png"
@@ -91,7 +103,7 @@ function SidebarContent({ role, email, name, onNavClick }: AdminSidebarProps & {
       </Link>
 
       {/* Nav */}
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1 min-h-0">
         {NAV_ITEMS.map((item) => {
           if (item.superAdminOnly && role !== "super_admin") return null;
           const active = isActive(item.href, item.exact);
@@ -115,7 +127,7 @@ function SidebarContent({ role, email, name, onNavClick }: AdminSidebarProps & {
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-[var(--color-border)] space-y-3">
+      <div className="flex-shrink-0 p-4 border-t border-[var(--color-border)] space-y-3 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
         <Link
           href="/admin/dashboard/profile"
           className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
@@ -137,10 +149,13 @@ function SidebarContent({ role, email, name, onNavClick }: AdminSidebarProps & {
           <Home className="w-4 h-4" />
           <span>Back to site</span>
         </Link>
-        <form action={adminLogout}>
+        <form action={async () => {
+          if (onNavClick) onNavClick();
+          await adminLogout();
+        }}>
           <button
             type="submit"
-            className="w-full text-left text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-error)] transition-colors flex items-center gap-2"
+            className="w-full text-left text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-error)] transition-colors flex items-center gap-2 px-1"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -149,7 +164,7 @@ function SidebarContent({ role, email, name, onNavClick }: AdminSidebarProps & {
           </button>
         </form>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -159,45 +174,48 @@ export function AdminSidebar({ role, email, name }: AdminSidebarProps) {
   return (
     <>
       {/* Mobile hamburger */}
-      <button
-        onClick={() => setOpen(true)}
-        className="lg:hidden fixed top-3 left-3 z-50 p-2 rounded-[var(--radius-md)] bg-[var(--color-surface)] border border-[var(--color-border)] shadow-sm text-[var(--color-text-secondary)] hover:text-[var(--color-foreground)]"
-        aria-label="Open sidebar"
-      >
-        <Menu className="w-5 h-5" />
-      </button>
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 h-14 bg-[var(--color-surface)] border-b border-[var(--color-border)] shadow-sm">
+        <button
+          onClick={() => setOpen(true)}
+          className="p-2 rounded-[var(--radius-md)] text-[var(--color-text-secondary)] hover:text-[var(--color-foreground)]"
+          aria-label="Open navigation menu"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
+
+        <span className="font-semibold text-[var(--color-brand-purple)] text-sm">
+          Open Hearts — Admin
+        </span>
+
+        <div className="w-8 h-8 rounded-full bg-[var(--color-brand-purple-light)] flex items-center justify-center">
+          <span className="text-[var(--color-brand-purple)] text-xs font-bold">
+            {(name || email).charAt(0).toUpperCase()}
+          </span>
+        </div>
+      </div>
 
       {/* Mobile overlay */}
       {open && (
         <div
-          className="lg:hidden fixed inset-0 z-40 bg-black/40"
+          className="lg:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
           onClick={() => setOpen(false)}
         />
       )}
 
-      {/* Mobile sidebar (slide-in) */}
+      {/* Sidebar — drawer on mobile, fixed on desktop */}
       <aside
-        className={[
-          "lg:hidden fixed top-0 left-0 z-50 w-64 bg-[var(--color-surface)] border-r border-[var(--color-border)] min-h-screen flex flex-col transition-transform duration-200",
-          open ? "translate-x-0" : "-translate-x-full",
-        ].join(" ")}
+        className={`
+          fixed top-0 left-0 z-50 h-full w-72
+          bg-[var(--color-surface)] border-r border-[var(--color-border)] shadow-xl
+          flex flex-col
+          transition-transform duration-300 ease-in-out
+          ${open ? "translate-x-0" : "-translate-x-full"}
+          lg:translate-x-0 lg:shadow-none lg:z-30 lg:sticky
+        `}
       >
-        <div className="flex items-center justify-end p-3 border-b border-[var(--color-border)]">
-          <button
-            onClick={() => setOpen(false)}
-            className="p-1.5 rounded-[var(--radius-md)] text-[var(--color-text-secondary)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-muted)]"
-            aria-label="Close sidebar"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
         <SidebarContent role={role} email={email} name={name} onNavClick={() => setOpen(false)} />
-      </aside>
-
-      {/* Desktop sidebar (always visible) */}
-      <aside className="hidden lg:flex w-64 shrink-0 bg-[var(--color-surface)] border-r border-[var(--color-border)] min-h-screen flex-col">
-        <SidebarContent role={role} email={email} name={name} />
       </aside>
     </>
   );
 }
+

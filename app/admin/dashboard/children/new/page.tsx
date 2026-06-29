@@ -14,7 +14,7 @@ export default function NewChildPage() {
         <span className="text-[var(--color-foreground)]">New profile</span>
       </div>
 
-      <h2 className="text-xl font-bold text-[var(--color-foreground)] mb-6">
+      <h2 className="text-xl sm:text-2xl font-bold text-[var(--color-foreground)] mb-6">
         Create child profile
       </h2>
 
