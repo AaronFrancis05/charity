@@ -24,7 +24,7 @@ export default async function AdminDashboardLayout({
   const displayName = session.name || session.email.split("@")[0];
 
   return (
-    <div className="min-h-screen bg-[var(--color-background)]">
+    <div className="flex min-h-screen bg-[var(--color-background)]">
       <AdminSidebar role={session.role} email={session.email} name={session.name} />
 
       <main className="lg:ml-72 flex-1 pt-14 lg:pt-0">
@@ -49,7 +49,7 @@ export default async function AdminDashboardLayout({
           </span>
         </header>
 
-        <div className="p-4 sm:p-6 lg:p-8">{children}</div>
+        <div className="p-4 sm:p-6 lg:p-8 min-h-screen">{children}</div>
       </main>
     </div>
   );
